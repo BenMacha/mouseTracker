@@ -1,6 +1,6 @@
 <?php
 
-namespace System\TrackerBundle\Entity;
+namespace benmacha\mousetracker\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Page
  *
  * @ORM\Table(name="tracker__page")
- * @ORM\Entity(repositoryClass="System\TrackerBundle\Repository\PageRepository")
+ * @ORM\Entity(repositoryClass="benmacha\mousetracker\TrackerBundle\Repository\PageRepository")
  */
 class Page
 {

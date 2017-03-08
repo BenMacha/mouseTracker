@@ -1,6 +1,6 @@
 <?php
 
-namespace System\TrackerBundle;
+namespace benmacha\mousetracker\TrackerBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

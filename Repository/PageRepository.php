@@ -1,6 +1,6 @@
 <?php
 
-namespace System\TrackerBundle\Repository;
+namespace benmacha\mousetracker\Repository;
 
 use Doctrine\ORM\EntityRepository;
 

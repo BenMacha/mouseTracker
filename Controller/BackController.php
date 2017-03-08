@@ -1,6 +1,6 @@
 <?php
 
-namespace System\TrackerBundle\Controller;
+namespace benmacha\mousetracker\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
