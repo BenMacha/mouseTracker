@@ -1,0 +1,4 @@
+services:
+#    tracker.example:
+#        class: TrackerBundle\Example
+#        arguments: ["@service_id", "plain_value", "%parameter%"]
