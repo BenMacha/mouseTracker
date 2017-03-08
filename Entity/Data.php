@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Data
  *
  * @ORM\Table(name="tracker__data")
- * @ORM\Entity(repositoryClass="\benmacha\mousetracker\TrackerBundle\Repository\DataRepository")
+ * @ORM\Entity(repositoryClass="\benmacha\mousetracker\Repository\DataRepository")
  */
 class Data
 {

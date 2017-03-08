@@ -1,11 +1,11 @@
-# MouseTracker #
+# MouseTracker (mouseflow)#
 ### By D'Ali Ben Macha <contact@benmacha.tn> [https://dali.benmacha.tn](https://dali.benmacha.tn) ###
 ## Installation ##
 
 Add the `benmacha/mousetracker` package to your `require` section in the `composer.json` file.
 
 ``` bash
-$ composer require benmacha/mousetracker 1.x-dev
+$ composer require benmacha/mousetracker dev-master
 ```
 
 Add the RedisBundle to your application's kernel:
@@ -22,6 +22,12 @@ public function registerBundles()
     ...
 }
 ```
+Create Table:
+
+``` bash
+$   php app/console doctrine:schema:update --force
+```
+
 
 ## Usage ##
 
