@@ -8,10 +8,11 @@
         "patchwork/jsqueeze": "^2.0",
         "leafo/scssphp": "^0.4.0"
     },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "*"
-        }
+    "autoload": {
+        "psr-4": { "benmacha\\mousetracker\\": "" }
+    },
+    "config": {
+        "bin-dir": "bin/"
     },
     "license": "MIT",
     "authors": [
