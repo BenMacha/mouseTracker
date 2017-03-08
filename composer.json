@@ -3,7 +3,15 @@
     "description": "Symfony Mouse Tracker",
     "type": "project",
     "require": {
-        "symfony/symfony": "2.8.*"
+        "php": ">=5.3.9",
+        "symfony/symfony": "2.8.*",
+        "patchwork/jsqueeze": "^2.0",
+        "leafo/scssphp": "^0.4.0"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "*"
+        }
     },
     "license": "MIT",
     "authors": [
