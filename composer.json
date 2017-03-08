@@ -1,0 +1,15 @@
+{
+    "name": "benmacha/mousetracker",
+    "description": "Symfony Mouse Tracker",
+    "type": "project",
+    "require": {
+        "symfony/symfony": "2.8.*"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ali Ben Macha",
+            "email": "contact@benmacha.tn"
+        }
+    ]
+}
