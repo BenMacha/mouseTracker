@@ -7,22 +7,15 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use System\TrackerBundle\Entity\Client;
-use System\TrackerBundle\Entity\Data;
-use System\TrackerBundle\Entity\Page;
+use benmacha\mousetracker\Entity\Client;
+use benmacha\mousetracker\Entity\Data;
+use benmacha\mousetracker\Entity\Page;
 
 class DefaultController extends Controller
 {
-    /**
-     * @Route("/")
-     */
-    public function indexAction()
-    {
-        return $this->render('TrackerBundle:Default:index.html.twig');
-    }
 
   /**
-   * @Route("/createClient")
+   * @Route("/createClient" ,name="mousetracker_createClient")
    * @Method({"POST"})
    * @param Request $request
    *
@@ -41,8 +34,9 @@ class DefaultController extends Controller
         $em = $this->getDoctrine()->getManager();
 
         $client = $em->getRepository('TrackerBundle:Client')->find($clientID);
-        if (!$client)
+        if (!$client) {
             $client = new Client();
+        }
 
         $client->setToken($token);
         $em->persist($client);
@@ -63,7 +57,7 @@ class DefaultController extends Controller
     }
 
   /**
-   * @Route("/clearPartial")
+   * @Route("/clearPartial", name="mousetracker_clearPartial")
    * @Method({"POST"})
    * @param Request $request
    *
@@ -75,7 +69,7 @@ class DefaultController extends Controller
     }
 
   /**
-   * @Route("/addData")
+   * @Route("/addData", name="mousetracker_addData")
    * @Method({"POST"})
    * @param Request $request
    *
@@ -111,7 +105,7 @@ class DefaultController extends Controller
     }
 
     /**
-     * @Route("/addTag")
+     * @Route("/addTag", name="mousetracker_addTag")
      * @Method({"POST"})
      * @param Request $request
      *

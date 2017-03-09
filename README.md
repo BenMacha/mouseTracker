@@ -36,11 +36,22 @@ mouse_tracker:
     prefix:   /tracker
 ```
 
+Configure the `Tracker` in your `config.yml`:
+
+``` yaml
+twig:
+    globals:
+        mousetrackerService: @twig_tracker
+```
+
 Create Table:
 
 ``` bash
-$   php app/console doctrine:schema:update --force
+$ php app/console doctrine:schema:update --force
 ```
+
+
+
 
 
 ## Usage ##
