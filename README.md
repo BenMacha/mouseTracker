@@ -39,6 +39,9 @@ mouse_tracker:
 Configure the `Tracker` in your `config.yml`:
 
 ``` yaml
+imports:
+    - { resource: "@TrackerBundle/Resources/config/services.yml" }
+
 twig:
     globals:
         mousetrackerService: @twig_tracker
