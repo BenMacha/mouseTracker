@@ -235,10 +235,10 @@ class Page
     /**
      * Set clientID
      *
-     * @param \System\TrackerBundle\Entity\Client $clientID
+     * @param \benmacha\mousetracker\Entity\Client $clientID
      * @return Page
      */
-    public function setClientID(\System\TrackerBundle\Entity\Client $clientID = null)
+    public function setClientID(\benmacha\mousetracker\Entity\Client $clientID = null)
     {
         $this->clientID = $clientID;
 
@@ -248,7 +248,7 @@ class Page
     /**
      * Get clientID
      *
-     * @return \System\TrackerBundle\Entity\Client 
+     * @return \benmacha\mousetracker\Entity\Client
      */
     public function getClientID()
     {
@@ -258,10 +258,10 @@ class Page
     /**
      * Add data
      *
-     * @param \System\TrackerBundle\Entity\Data $data
+     * @param \benmacha\mousetracker\Entity\Data $data
      * @return Page
      */
-    public function addDatum(\System\TrackerBundle\Entity\Data $data)
+    public function addDatum(\benmacha\mousetracker\Entity\Data $data)
     {
         $this->data[] = $data;
 
@@ -271,9 +271,9 @@ class Page
     /**
      * Remove data
      *
-     * @param \System\TrackerBundle\Entity\Data $data
+     * @param \benmacha\mousetracker\Entity\Data $data
      */
-    public function removeDatum(\System\TrackerBundle\Entity\Data $data)
+    public function removeDatum(\benmacha\mousetracker\Entity\Data $data)
     {
         $this->data->removeElement($data);
     }

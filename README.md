@@ -42,6 +42,12 @@ Configure the `Tracker` in your `config.yml`:
 twig:
     globals:
         mousetrackerService: @twig_tracker
+        
+assetic:
+    filters:
+        scssphp:
+            formatter: 'Leafo\ScssPhp\Formatter\Compressed'
+        jsqueeze: ~
 ```
 
 Create Table:
@@ -50,19 +56,26 @@ Create Table:
 $ php app/console doctrine:schema:update --force
 ```
 
-
-
-
-
 ## Usage ##
 
-Configure the `Tracker` client(s) in your `config.yml`:
+Configure the `TrackerService` before the end of Body tag in your `*.html.twig` page:
 
-_test test._
+``` twig
 
-``` yaml
-ddd:
-    clients:
-        default:
-            aaaa: dddd
+<script>
+    /*
+	Javascript Code 
+	*/
+</script>
+
+{{ mousetrackerService.build() }}
+
+<script>
+    /*
+	Javascript Code 
+	*/
+</script>
+</body>
+</html>
+
 ```

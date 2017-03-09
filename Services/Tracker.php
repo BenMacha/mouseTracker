@@ -26,21 +26,8 @@ class Tracker
    * @param $title
    * @param bool $ul
    */
-  public function build($domain, $title, $ul = false)
+  public function build()
   {
-    //$tt = $this->container->get('templating');
-
-    /*$em = $this->container->get('doctrine.orm.entity_manager');
-    $groups = array(
-      'domain' => $domain,
-      'title' => $title,
-    );
-    $menuItem = $em->getRepository('DefaultBundle:MenuGroup')->findOneBy($groups);
-    $array = array(
-      'ul' => $ul,
-      'menus' => $menuItem->getMenu(),
-    );*/
-
     return $this->twig->display('TrackerBundle:Tracker:Front.html.twig');
   }
 }

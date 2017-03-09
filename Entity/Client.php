@@ -109,10 +109,10 @@ class Client
     /**
      * Add page
      *
-     * @param \System\TrackerBundle\Entity\Page $page
+     * @param \benmacha\mousetracker\Entity\Page $page
      * @return Client
      */
-    public function addPage(\System\TrackerBundle\Entity\Page $page)
+    public function addPage(\benmacha\mousetracker\Entity\Page $page)
     {
         $this->page[] = $page;
 
@@ -122,9 +122,9 @@ class Client
     /**
      * Remove page
      *
-     * @param \System\TrackerBundle\Entity\Page $page
+     * @param \benmacha\mousetracker\Entity\Page $page
      */
-    public function removePage(\System\TrackerBundle\Entity\Page $page)
+    public function removePage(\benmacha\mousetracker\Entity\Page $page)
     {
         $this->page->removeElement($page);
     }

@@ -259,10 +259,10 @@ class Data
     /**
      * Set clientPageID
      *
-     * @param \System\TrackerBundle\Entity\Page $clientPageID
+     * @param \benmacha\mousetracker\Entity\Page $clientPageID
      * @return Data
      */
-    public function setClientPageID(\System\TrackerBundle\Entity\Page $clientPageID = null)
+    public function setClientPageID(\benmacha\mousetracker\Entity\Page $clientPageID = null)
     {
         $this->clientPageID = $clientPageID;
 
@@ -272,7 +272,7 @@ class Data
     /**
      * Get clientPageID
      *
-     * @return \System\TrackerBundle\Entity\Page 
+     * @return \benmacha\mousetracker\Entity\Page
      */
     public function getClientPageID()
     {

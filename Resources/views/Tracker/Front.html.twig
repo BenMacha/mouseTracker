@@ -1,0 +1,12 @@
+<script >
+        var URL_Path    = '{{ app.request.getSchemeAndHttpHost() }}'
+        var URL_data    = '{{ path('mousetracker_addData') }}'
+        var URL_tag     = '{{ path('mousetracker_addTag') }}'
+        var URL_partial = '{{ path('mousetracker_clearPartial') }}'
+        var URL_client  = '{{ path('mousetracker_createClient') }}'
+</script>
+{% javascripts filter="?jsqueeze" output="js/mousetracker.js"
+"@TrackerBundle/Resources/public/js/tracker.js"
+%}
+<script src="{{ asset_url }}"></script>
+{% endjavascripts %}
