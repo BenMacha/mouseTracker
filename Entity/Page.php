@@ -51,7 +51,7 @@ class Page
     /**
      * @var string
      *
-     * @ORM\Column(name="source", type="string", length=50)
+     * @ORM\Column(name="source", type="text")
      */
     private $source;
 
