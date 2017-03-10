@@ -9,8 +9,15 @@
 Add the `benmacha/mousetracker` package to your `require` section in the `composer.json` file.
 
 ``` bash
+$ composer require benmacha/mousetracker
+```
+
+For dev package 
+
+``` bash
 $ composer require benmacha/mousetracker dev-master
 ```
+
 
 Add the MouseTrackerBundle to your application's kernel:
 
