@@ -1,0 +1,274 @@
+#recordList {
+    width: 95%;
+    top: 120px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 13px;
+}
+
+#recordList table {
+    background: #FEFEFE;
+    width: 100%;
+    margin: 2px auto;
+}
+
+#recordList table th {
+    padding: 5px 0px;
+    margin: 0px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+#recordList table th {
+    background: #EBDDEF;
+    color: #875399;
+    position: relative;
+}
+
+#recordList table td, th {
+    text-align: center;
+}
+
+#recordList table th.orderedBy::after {
+    content: '↑';
+    position: absolute;
+    right: 5px;
+    top: 0px;
+    font-size: 15px;
+}
+
+#recordList table th.orderedBy.ASC::after {
+    content: '↓';
+}
+
+#recordList table td:not(:last-child) {
+    border-right: 1px solid #e0e0e0;
+}
+
+#recordList td {
+    padding: 5px 0px;
+    color: #740e58;
+    border: 1px solid transparent;
+}
+
+#recordList tr:nth-child(2n+1) {
+    background: #f5f5f5;
+}
+
+#recordList tr.selected {
+    background: #fff1f1;
+}
+
+#recordList tr:nth-child(2n+1).selected {
+    background: #ffe4e4;
+}
+
+#recordList tr.selected td {
+    border: 1px dashed #ddd;
+}
+
+#recordList .pageEntry, #recordList .tag, .tagFilterElement, .referrer a {
+    display: inline-block;
+    border: 1px solid #EBDDEF;
+    border-radius: 5px;
+    padding: 2px 5px 2px 5px;
+    margin: 2px;
+    position: relative;
+}
+
+.referrer a {
+    color: #006B79;
+    border-color: #C5DDE0;
+}
+
+.referrer a:hover {
+    color: #006B79;
+    border-color: #006B79;
+}
+
+#tagFilter {
+    padding: 0px 3px 0px 5px;
+    position: relative;
+    border: 1px dashed #C5DDE0;
+    border-radius: 5px;
+    margin-right: 5px;
+}
+
+.plus {
+    display: inline-block;
+    color: #006B79;
+    border: 1px solid #C5DDE0;
+    border-radius: 13px;
+    width: 15px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: bold;
+    text-align: center;
+    padding: 0px 1px 1px 0px;
+    margin: 2px;
+}
+
+#recordList .tag, .tagFilterElement {
+    cursor: pointer;
+    color: #006B79;
+    border-color: #C5DDE0;
+}
+
+#recordList .tag:hover, .tagFilterElement:hover, .plus:hover {
+    color: #006B79;
+    border-color: #006B79;
+}
+
+.tags {
+    direction: rtl;
+}
+
+.addTag {
+    padding-left: 1px;
+}
+
+.tags .plus {
+    opacity: 0;
+    transition: all 0.2s linear;
+}
+
+#recordList tr:hover .tags .plus {
+    opacity: 1;
+}
+
+#recordList td .pageEntry:last-child {
+    padding-right: 20px;
+}
+
+#recordList td .pageEntry:last-child:after {
+    content: url('/images/tracker/icons/exit.png');
+    position: absolute;
+    right: 2px;
+    top: 3px;
+}
+
+td.browser img {
+    vertical-align: middle;
+}
+
+td.browser span {
+    font-size: 11px;
+    margin-left: 2px;
+}
+
+td.ip {
+    text-align: left !important;
+    padding-left: 8px !important;
+}
+
+td.pageHistory {
+    text-align: right !important;
+    padding-right: 8px !important;
+    max-width: 20%;
+}
+
+td.playButton button {
+}
+
+.shareRecordButton {
+    display: block;
+    margin: 0 auto;
+    cursor: pointer;
+    vertical-align: middle;
+    border: 1px dotted rgba(0, 0, 0, 0);
+    border-radius: 16px;
+    width: 16px;
+    height: 16px;
+    padding: 3px;
+    cursor: pointer;
+    transition: all 0.3s ease-out;
+    opacity: 0.3;
+}
+
+.shareRecordButton:hover {
+    background: white;
+    border-color: #9157c1;
+    opacity: 1;
+    transform: scale(1.4) rotate(300deg) translate3d(2px, 0px, 0px);
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+}
+
+#clientFilter {
+    width: 97%;
+    padding: 2px 5px;
+    margin: 0 auto;
+    height: 30px;
+    font-size: 11px;
+    overflow: hidden;
+}
+
+#clientFilter .filter {
+    float: right;
+}
+
+#rangeFilter {
+}
+
+#rangeFilter input[type="date"] {
+    margin-left: 5px;
+}
+
+#pagination {
+    font-size: 12px;
+    color: #555;
+    font-weight: 600;
+    text-align: center;
+    max-width: 95%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin: 5px auto;
+    padding: 5px;
+    white-space: nowrap;
+}
+
+#pagination span {
+    padding: 8px 7px;
+    cursor: pointer;
+    display: inline-block;
+    overflow: hidden;
+    border-radius: 5px;
+}
+
+#pagination span.selected {
+    color: white;
+    background: #a87eb7;
+}
+
+#pagination span:not(.selected):hover {
+    background: #eee;
+}
+
+#sessionControls {
+    width: 100%;
+    height: 28px;
+    margin-top: 2px;
+    background: #a87eb7;
+    text-align: center;
+    overflow: hidden;
+}
+
+#controlsWrap {
+    margin-right: 50px;
+}
+
+#sessionControls img {
+    cursor: pointer;
+    float: right;
+    padding: 2px 15px 2px 15px;
+}
+
+#sessionControls img {
+    border-right: 1px dashed #dbb8e8;
+}
+
+#sessionControls img:not(:first-child) {
+    border-left: 1px dashed #dbb8e8;
+}
+
+#sessionControls img:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
