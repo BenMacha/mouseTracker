@@ -67,7 +67,7 @@ window.userTrackAjax = (function () {
         jQuery.ajax({
             type: 'POST',
             dataType: "json",
-            url: '/app_dev.php/tracker/back/getPages',
+            url: URL_page,
             data: {domain: options.domain},
             beforeSend: function (x) {
                 if (x && x.overrideMimeType) {
@@ -163,7 +163,7 @@ window.userTrackAjax = (function () {
         jQuery.ajax({
             type: 'POST',
             dataType: "json",
-            url: '/app_dev.php/tracker/back/getClients',
+            url: URL_client,
             data: {
                 from: from,
                 take: take,
@@ -377,7 +377,7 @@ window.userTrackAjax = (function () {
                 clientid: window.CLIENT_ID,
                 key: window.PUBLIC_KEY
             },
-            url: '/app_dev.php/tracker/back/getData',
+            url: URL_data,
             beforeSend: function (x) {
                 if (x && x.overrideMimeType) {
                     x.overrideMimeType("application/j-son;charset=UTF-8");
@@ -424,7 +424,7 @@ window.userTrackAjax = (function () {
             type: "POST",
             dataType: "json",
             data: {page: options.url, resolution: options.resolution, what: options.what, domain: options.domain},
-            url: '/app_dev.php/tracker/back/getData',
+            url: URL_data,
             beforeSend: function (x) {
                 jQuery('#loading').text("Retrieving data from database...");
                 if (x && x.overrideMimeType) {

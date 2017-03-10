@@ -2,14 +2,12 @@
 
 namespace benmacha\mousetracker\Controller;
 
+use benmacha\mousetracker\Entity\Data;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use System\TrackerBundle\Entity\Client;
-use System\TrackerBundle\Entity\Data;
-use System\TrackerBundle\Entity\Page;
 
 
 /**
@@ -20,15 +18,15 @@ use System\TrackerBundle\Entity\Page;
 class BackController extends Controller
 {
     /**
-     * @Route("/")
+     * @Route("/" ,name="mousetracker_backindex")
      */
     public function indexAction()
     {
-        return $this->render('TrackerBundle:Default:index.html.twig');
+        return $this->render('TrackerBundle:Backend:index.html.twig');
     }
 
   /**
-   * @Route("/getPages")
+   * @Route("/getPages" , name="mousetracker_back_getPage")
    * @Method({"POST"})
    * @param Request $request
    *
@@ -51,7 +49,7 @@ class BackController extends Controller
     }
 
   /**
-   * @Route("/getClients")
+   * @Route("/getClients" , name="mousetracker_back_getClient")
    * @Method({"POST"})
    * @return JsonResponse
    * @internal param Request $request
@@ -72,7 +70,7 @@ class BackController extends Controller
                 'resolution'=> '1606 826',
                 'browser'   => 'chrome 55',
                 'tags'      => '',
-                'pageHistory'=> '/app_dev.php',
+                'pageHistory'=> '/app_dev.php/en/my-clm-presentations/208/212/edit',
                 'referrer'  => '',  //source page
                 'timeSpent' => 100, //navigation time in second
                 'id'        => $client->getId(),
@@ -89,7 +87,7 @@ class BackController extends Controller
     }
 
   /**
-   * @Route("/getData")
+   * @Route("/getData" , name="mousetracker_back_getData")
    * @Method({"POST"})
    * @return JsonResponse
    * @internal param Request $request
@@ -101,13 +99,14 @@ class BackController extends Controller
         $em = $this->getDoctrine()->getManager();
         $datas = $em->getRepository("TrackerBundle:Data")->findAll();
         $array = array();
-
         /** @var Data $data */
         foreach ($datas as $data) {
-            foreach (json_decode($data->getPartial()) as $result)
-              $array[] = $result;
-        }
+          $tmp = json_decode($data->getPartial());
+          for($i = 0; $i < count($tmp); $i++){
+             $array[] = $tmp[$i];
+          }
 
+        }
 
         return new JsonResponse($array);
     }
