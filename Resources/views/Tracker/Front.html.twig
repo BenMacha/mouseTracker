@@ -5,6 +5,6 @@
         var URL_partial = '{{ path('mousetracker_clearPartial') }}'
         var URL_client  = '{{ path('mousetracker_createClient') }}'
 </script>
-{% javascripts "@TrackerBundle/Resources/public/js/tracker.js"  %}
+{% javascripts "@TrackerBundle/Resources/public/js/tracker.js" filter="?jsqueeze" output="bundles/mousetracker/js/tracker.min.js" %}
 <script type="text/javascript" src="{{ asset_url }}"></script>
 {% endjavascripts %}

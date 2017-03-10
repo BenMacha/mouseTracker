@@ -3,12 +3,17 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <link href="/css/globals.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="/css/userTrack.css"/>
-    <link rel="stylesheet" href="/css/record.css"/>
-    <link rel="stylesheet" href="/css/clientList.css"/>
-    <link rel="stylesheet" href="/js/back/lib/uniform.default.min.css" media="screen"/>
-    <link rel="stylesheet" href="/js/back/lib/jquery.qtip.min.css"/>
+    {% stylesheets filter="?scssphp" output="bundles/mousetracker/js/back/css/tracker.min.css"
+    '@TrackerBundle/Resources/public/css/globals.css'
+    '@TrackerBundle/Resources/public/css/userTrack.css'
+    '@TrackerBundle/Resources/public/css/record.css'
+    '@TrackerBundle/Resources/public/css/clientList.css'
+    '@TrackerBundle/Resources/public/js/lib/uniform.default.min.css'
+    '@TrackerBundle/Resources/public/js/back/lib/jquery.qtip.min.css'
+    %}
+    <link rel="stylesheet" href="{{ asset_url }}" />
+    {% endstylesheets %}
+
 
     <title>Mouse Tracker</title>
 </head>
@@ -258,11 +263,11 @@
 </script>
 
 
-{% javascripts "@TrackerBundle/Resources/public/js/back/lib/*"  %}
+{% javascripts "@TrackerBundle/Resources/public/js/back/lib/*" filter="?jsqueeze" output="bundles/mousetracker/js/back/lib-tracker.min.js" %}
 <script type="text/javascript" src="{{ asset_url }}"></script>
 {% endjavascripts %}
 
-{% javascripts "@TrackerBundle/Resources/public/js/back/*"  %}
+{% javascripts "@TrackerBundle/Resources/public/js/back/*" filter="?jsqueeze" output="bundles/mousetracker/js/back/tracker.min.js" %}
 <script type="text/javascript" src="{{ asset_url }}"></script>
 {% endjavascripts %}
 
