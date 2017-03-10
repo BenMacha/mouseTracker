@@ -262,25 +262,30 @@
     var URL_client  = '{{ path('mousetracker_back_getClient') }}'
 </script>
 
-{% javascripts "@TrackerBundle/Resources/public/js/back/lib/heatmap.js"
+{% javascripts
+    "@TrackerBundle/Resources/public/js/back/lib/heatmap.js"
     "@TrackerBundle/Resources/public/js/back/lib/html2canvas.js"
     "@TrackerBundle/Resources/public/js/back/lib/jquery.qtip.min.js"
     "@TrackerBundle/Resources/public/js/back/lib/jquery.uniform.min.js"
     "@TrackerBundle/Resources/public/js/back/lib/alertify.js"
     "@TrackerBundle/Resources/public/js/back/lib/clipboard.min.js"
-    filter="?jsqueeze"
-    output="bundles/mousetracker/js/back/lib-tracker.min.js" %}
-<script type="text/javascript" src="{{ asset_url }}"></script>
 
+filter="?jsqueeze" output="bundles/mousetracker/js/back/lib-tracker.min.js" %}
+<script type="text/javascript" src="{{ asset_url }}"></script>
 {% endjavascripts %}
 
-{% javascripts 
-	"@TrackerBundle/Resources/public/js/back/*" 
-	filter="?jsqueeze" 
-	output="bundles/mousetracker/js/back/tracker.min.js" %}
+{% javascripts
+    "@TrackerBundle/Resources/public/js/back/userTrackHeatmapDownload.js"
+    "@TrackerBundle/Resources/public/js/back/userTrackRecords.js"
+    "@TrackerBundle/Resources/public/js/back/userTrackScrollmap.js"
+    "@TrackerBundle/Resources/public/js/back/userTrackAjax.js"
+    "@TrackerBundle/Resources/public/js/back/userTrackAjaxSettings.js"
+    "@TrackerBundle/Resources/public/js/back/userTrack.js"
+    "@TrackerBundle/Resources/public/js/back/userTrackUI.js"
+    "@TrackerBundle/Resources/public/js/back/clientList.js"
 
+filter="?jsqueeze" output="bundles/mousetracker/js/back/tracker.min.js" %}
 <script type="text/javascript" src="{{ asset_url }}"></script>
-
 {% endjavascripts %}
 
 </body>
