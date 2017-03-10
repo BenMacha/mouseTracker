@@ -19,7 +19,7 @@
 </head>
 <body>
 <div id="header">
-    <a href="index.html"><img id="logo" alt="UserTrack logo" src="/images/tracker/usertrack.png"/></a>
+    <a href="index.html"><img id="logo" alt="UserTrack logo" src="{{ asset('/bundles/tracker/images/tracker/usertrack.png') }}"/></a>
     <ul id="options">
         <li>
             <span class="option">Page:</span>
@@ -35,14 +35,14 @@
         </li>
         <li id="hoverWrap">
             <span class="option">Tracking settings:</span>
-            <img id="show_settings" title="Tracking script settings" src="/images/tracker/settings.png"/>
+            <img id="show_settings" title="Tracking script settings" src="{{ asset('/bundles/tracker/images/tracker/settings.png') }}"/>
         </li>
     </ul>
     <div id="type">
-        <div data-value="movements" class="opt selected" title="Mouse movements"><img src="/images/tracker/move.png" alt="move"/></div>
-        <div data-value="clicks" class="opt" title="Mouse clicks"><img src="/images/tracker/click.png" alt="move"/></div>
-        <div data-value="scrollmap" class="opt" title="Scroll attention"><img src="/images/tracker/scroll.png" alt="scroll"/></div>
-        <div data-value="record" class="opt" title="Full recording"><img src="/images/tracker/record.png" alt="move"/></div>
+        <div data-value="movements" class="opt selected" title="Mouse movements"><img src="{{ asset('/bundles/tracker/images/tracker/move.png') }}" alt="move"/></div>
+        <div data-value="clicks" class="opt" title="Mouse clicks"><img src="{{ asset('/bundles/tracker/images/tracker/click.png') }}" alt="move"/></div>
+        <div data-value="scrollmap" class="opt" title="Scroll attention"><img src="{{ asset('/bundles/tracker/images/tracker/scroll.png') }}" alt="scroll"/></div>
+        <div data-value="record" class="opt" title="Full recording"><img src="{{ asset('/images/tracker/record.png') }}" alt="move"/></div>
     </div>
 </div>
 <div id="loading">Loading ...</div>
