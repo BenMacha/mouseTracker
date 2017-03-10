@@ -262,13 +262,25 @@
     var URL_client  = '{{ path('mousetracker_back_getClient') }}'
 </script>
 
-
-{% javascripts "@TrackerBundle/Resources/public/js/back/lib/*" filter="?jsqueeze" output="bundles/mousetracker/js/back/lib-tracker.min.js" %}
+{% javascripts "@TrackerBundle/Resources/public/js/back/lib/heatmap.js"
+    "@TrackerBundle/Resources/public/js/back/lib/html2canvas.js"
+    "@TrackerBundle/Resources/public/js/back/lib/jquery.qtip.min.js"
+    "@TrackerBundle/Resources/public/js/back/lib/jquery.uniform.min.js"
+    "@TrackerBundle/Resources/public/js/back/lib/alertify.js"
+    "@TrackerBundle/Resources/public/js/back/lib/clipboard.min.js"
+    filter="?jsqueeze"
+    output="bundles/mousetracker/js/back/lib-tracker.min.js" %}
 <script type="text/javascript" src="{{ asset_url }}"></script>
+
 {% endjavascripts %}
 
-{% javascripts "@TrackerBundle/Resources/public/js/back/*" filter="?jsqueeze" output="bundles/mousetracker/js/back/tracker.min.js" %}
+{% javascripts 
+	"@TrackerBundle/Resources/public/js/back/*" 
+	filter="?jsqueeze" 
+	output="bundles/mousetracker/js/back/tracker.min.js" %}
+
 <script type="text/javascript" src="{{ asset_url }}"></script>
+
 {% endjavascripts %}
 
 </body>
