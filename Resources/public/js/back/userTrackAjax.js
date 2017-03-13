@@ -179,6 +179,7 @@ window.userTrackAjax = (function () {
                 }
             },
             success: function (data) {
+                console.log(data)
                 var $recordListTable = jQuery('#recordList table');
                 jQuery('tr:has(td)', $recordListTable).remove();
                 if (data === null || data.clients.length === 0) {
@@ -197,7 +198,7 @@ window.userTrackAjax = (function () {
                     var n = 0;
                     var referrerMaxLength = 15;
                     for (var i in data[v]) {
-                        if (++n > 7)
+                        if (++n > 6)
                             break;
                         var td = jQuery('<td class="' + i + '"></td>');
                         td.text(data[v][i]);
@@ -207,49 +208,6 @@ window.userTrackAjax = (function () {
                                 data[v].date = data[v].date.replace(' ', ' <b>') + '</b>';
                                 td.html(data[v].date);
                                 td.attr('title', "Date: " + fullDate);
-                                break;
-                            case'referrer':
-                                var referrerURL = data[v].referrer;
-                                if (!referrerURL)continue;
-                                referrerURL = referrerURL.replace('javascript:', '');
-                                referrerURL = referrerURL.replace('<', '&lt;');
-                                var niceURL = data[v].referrer.match(/^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/\n]+)/im)[1];
-                                if (!niceURL)continue;
-                                if (niceURL.length > referrerMaxLength) {
-                                    niceURL = niceURL.substring(0, referrerMaxLength - 3) + '...';
-                                }
-                                var $a = jQuery('<a target="_blank" href="' + referrerURL + '" class=""></span>');
-                                $a.attr('title', "Open in new tab: <b>" + referrerURL + "</b>");
-                                $a.text(niceURL);
-                                td.html($a);
-                                break;
-                            case'tags':
-                                td.html('<span class="plus addTag" data-id ="' + data[v].clientid + '">+</span>');
-                                td.attr('title', '<b>Click</b> to add this tag filter. <br/> <b>Right click</b> a tag to remove it');
-                                var tags = data[v][i];
-                                for (var idx in tags) {
-                                    var span = jQuery('<span class="tag"></span>');
-                                    span.text(tags[idx]);
-                                    td.append(span);
-                                }
-                                break;
-                            case'ip':
-                                var newIP = data[v].ip;
-                                if (censorIP) {
-                                    newIP = '*' + data[v].ip.slice(-7);
-                                }
-                                td.html('<img src="/images/tracker/flags/xx.png"/> ' + newIP);
-                                if (localStorage['c' + data[v].ip] !== undefined) {
-                                    var countryCode = localStorage['c' + data[v].ip];
-                                    td.html('<img src="/images/tracker/flags/' + countryCode + '.png" title="' + countryCode + '"/> ' + newIP);
-                                }
-                                else {
-                                    (function (ip, td, newIP) {
-                                        setTimeout(function () {
-                                            addCountryFlag(ip, td, newIP);
-                                        }, 300 * v);
-                                    })(data[v].ip, td, newIP);
-                                }
                                 break;
                             case'pageHistory':
                                 td.empty();
@@ -289,8 +247,6 @@ window.userTrackAjax = (function () {
                     }
                     var recordColumn = jQuery('<td class="playButton"><button ' + 'data-recordid="' + data[v].recordid + '" ' + 'data-page="' + firstPage + '" ' + 'data-resolution="' + data[v].resolution + '" ' +
                         disabled + '>Play</button></td>');
-                    var shareButton = jQuery('<img class="shareRecordButton" src="/images/tracker/icons/share.png" title="Direct playback share link."/>');
-                    recordColumn.append(shareButton);
                     $tr.append(recordColumn);
                     var browserEl = jQuery('td.browser', $tr).get(0);
                     var br = browserEl.innerText;
@@ -340,7 +296,7 @@ window.userTrackAjax = (function () {
         });
     }
 
-    function getNextRecord(id) {
+    /*function getNextRecord(id) {
         jQuery.ajax({
             type: 'POST',
             dataType: "json",
@@ -360,7 +316,7 @@ window.userTrackAjax = (function () {
                 alertify.alert(data.responseText);
             }
         });
-    }
+    }*/
 
     function getRecord(id) {
         if (window.DIRECT_PLAYBACK && options.what !== 'record')return;
@@ -398,7 +354,7 @@ window.userTrackAjax = (function () {
         });
     }
 
-    function getRecordList(clientID) {
+    /*function getRecordList(clientID) {
         jQuery.ajax({
             type: "POST",
             dataType: "json",
@@ -416,7 +372,7 @@ window.userTrackAjax = (function () {
                 alertify.alert("Could not load data!" + data.responseText);
             }
         });
-    }
+    }*/
 
     function loadHeatmapData() {
         DEBUG && console.log("loadHeatmapData");
@@ -595,8 +551,8 @@ window.userTrackAjax = (function () {
         setRecordLimit: setRecordLimit,
         getRecordLimit: getRecordLimit,
         getRecord: getRecord,
-        getRecordList: getRecordList,
-        getNextRecord: getNextRecord,
+        //getRecordList: getRecordList,
+        //getNextRecord: getNextRecord,
         deleteClient: deleteClient,
         cleanDataForDomain: cleanDataForDomain,
         deleteZeroRecords: deleteZeroRecords,

@@ -64,22 +64,25 @@ class BackController extends Controller
 
         /** @var Client $client */
         foreach ($clients as $client) {
-            $array["clients"][] = array(
-                'date'      => $client->getDate()->format('Y-m-d H:i:s'),
-                'ip'        => '41.226.81.154',
-                'resolution'=> '1606 826',
-                'browser'   => 'chrome 55',
-                'tags'      => '',
-                'pageHistory'=> '/app_dev.php/en/my-clm-presentations/208/212/edit',
-                'referrer'  => '',  //source page
-                'timeSpent' => 100, //navigation time in second
-                'id'        => $client->getId(),
-                'clientid'  => $client->getId(),
-                'recordid'  => $client->getId(),
-                'nr'        => 1,  //number of page visited
-                'token'     => '41.226.81.154#'.$client->getToken().'@chrome 55',
+            foreach($client->getPage() as $page){
+                $array["clients"][] = array(
+                  'date'      => $page->getDate()->format('Y-m-d H:i:s'),
+/*                  'ip'        => '41.226.81.154',*/
+                  'resolution'=> $page->getResolution(),
+                  'browser'   => 'chrome 55',
+                  'tags'      => '',
+                  'pageHistory'=> $page->getUrl(),
+                  'referrer'  => '',  //source page
+                  'timeSpent' => 100, //navigation time in second
+                  'id'        => $client->getId(),
+                  'clientid'  => $client->getId(),
+                  'recordid'  => $page->getId(),
+                  'nr'        => 1,  //number of page visited
+                  'token'     => '41.226.81.154#'.$client->getToken().'@chrome 55',
 
-            );
+                );
+            }
+
         }
 
 
@@ -93,11 +96,11 @@ class BackController extends Controller
    * @internal param Request $request
    *
    */
-    public function getDataAction()
+    public function getDataAction(Request $request)
     {
 
         $em = $this->getDoctrine()->getManager();
-        $datas = $em->getRepository("TrackerBundle:Data")->findAll();
+        $datas = $em->getRepository("TrackerBundle:Page")->find($request->get('recordid'))->getData();
         $array = array();
         /** @var Data $data */
         foreach ($datas as $data) {

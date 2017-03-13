@@ -95,6 +95,8 @@ class DefaultController extends Controller
         $data->setPartial($partial);
         $data->setW($w);
         $data->setClientPageID($page);
+        if($cachedRecords != null)
+          $data->setPartial($cachedRecords);
         $data->setCachedRecords($cachedRecords);
         $data->setRecord($record);
 

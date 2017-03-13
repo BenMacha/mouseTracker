@@ -4,7 +4,7 @@
     "type": "symfony-bundle",
     "keywords": ["framework","Symfony","mouse","tracker","flow","heatmap"],
     "require": {
-        "php": ">=5.3.9",
+        "php": ">=5.5.9",
         "symfony/symfony": "2.8.*",
         "patchwork/jsqueeze": "^2.0",
         "leafo/scssphp": "^0.4.0"

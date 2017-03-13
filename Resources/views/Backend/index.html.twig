@@ -61,7 +61,7 @@
 <div id="recordList" class="ust_dialog">
     <div id="close" title="Close">X</div>
     <h1>Recorded sessions</h1>
-    <div id="clientFilter">
+    {#<div id="clientFilter">
         <div id="rangeFilter" class="filter">
             Show data
             <label for="from">from:</label><input type="date" name="from"/>
@@ -83,16 +83,13 @@
         <div id="tagFilter" class="filter">
             <label>Tag filters:</label> <div id="addTagFilter" class="plus" title="Add new tag filter">+</div>
         </div>
-    </div>
+    </div>#}
     <table>
         <tr>
             <th>Date</th>
-            <th>Country</th>
             <th>Window Size</th>
             <th>Browser</th>
-            <th>Referrer</th>
             <th>Visited pages</th>
-            <th>Tags</th>
             <th>Record</th>
         </tr>
         <tr>
@@ -224,18 +221,13 @@
         <li>
             <img src="/images/tracker/icons/resolution.png" alt="resolution" title="Screen resolution"/>
             <span id="resolutionInfo"></span>
-            <span id="browserInfo"></span>
         </li>
         <li>
             <img src="/images/tracker/icons/page.png" alt="page" title="Page URL"/>
             <span id="urlInfo"></span>
         </li>
         <li>
-            <span id="userFlag" title="Country flag"></span>
             <span id="dateInfo" title="Starting time of session"></span>
-        </li>
-        <li>
-            Tags: <span id="userTags"></span>
         </li>
     </ul>
 
@@ -249,7 +241,6 @@
 
         <label>Skip pauses:</label><input id="skipPauses" type="checkbox" title="Uncheck this to see the times when mouse was standing still."/>
         <button id="play" disabled>Play</button>
-        <button id="nextPage" disabled> Skip to next page >></button>
     </div>
 </div>
 

@@ -244,7 +244,6 @@
 
         <label>Skip pauses:</label><input id="skipPauses" type="checkbox" title="Uncheck this to see the times when mouse was standing still."/>
         <button id="play" disabled>Play</button>
-        <button id="nextPage" disabled> Skip to next page >></button>
     </div>
 </div>
 

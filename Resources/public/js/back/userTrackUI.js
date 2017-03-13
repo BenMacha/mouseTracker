@@ -100,13 +100,13 @@ jQuery(function () {
         jQuery('#urlInfo').text(options.url);
         jQuery('#dateInfo').text(parent.find('.date').text());
         jQuery('#userTags').text(parent.find('.tags').text());
-        userTrackAjax.getRecordList(parent.attr('data-id'));
+        //userTrackAjax.getRecordList(parent.attr('data-id'));
     }
 
     jQuery('button#nextPage').click(function () {
         if (jQuery('#play').text() == 'Stop')
             jQuery('#play').trigger('click');
-        userTrackAjax.getNextRecord(options.lastid);
+        //userTrackAjax.getNextRecord(options.lastid);
     });
     if (localStorage.skipPauses === "true") {
         $('#skipPauses').prop('checked', true);

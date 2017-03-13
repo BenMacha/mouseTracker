@@ -87,7 +87,7 @@ window.userTrackRecord = (function () {
             } else {
                 recordPlaying = false;
                 jQuery('#recordControls button#play').text('Play');
-                userTrackAjax.getNextRecord(options.lastid);
+                //userTrackAjax.getNextRecord(options.lastid);
             }
             return;
         }
@@ -100,7 +100,7 @@ window.userTrackRecord = (function () {
             } else {
                 recordPlaying = false;
                 jQuery('#recordControls button#play').text('Play');
-                userTrackAjax.getNextRecord(options.lastid);
+                //userTrackAjax.getNextRecord(options.lastid);
             }
             return;
         }
@@ -115,7 +115,7 @@ window.userTrackRecord = (function () {
             } else {
                 recordPlaying = false;
                 jQuery('#recordControls button#play').text('Play');
-                userTrackAjax.getNextRecord(options.lastid);
+                //userTrackAjax.getNextRecord(options.lastid);
             }
             return;
         }
@@ -131,7 +131,7 @@ window.userTrackRecord = (function () {
                 } else {
                     recordPlaying = false;
                     jQuery('#recordControls button#play').text('Play');
-                    userTrackAjax.getNextRecord(options.lastid);
+                    //userTrackAjax.getNextRecord(options.lastid);
                 }
             }
         } else {
@@ -161,7 +161,7 @@ window.userTrackRecord = (function () {
                 } else {
                     recordPlaying = false;
                     jQuery('#recordControls button#play').text('Play');
-                    userTrackAjax.getNextRecord(options.lastid);
+                    //userTrackAjax.getNextRecord(options.lastid);
                 }
             });
         }
@@ -214,7 +214,7 @@ window.userTrackRecord = (function () {
         } else {
             recordPlaying = false;
             jQuery('#recordControls button#play').text('Play');
-            userTrackAjax.getNextRecord(options.lastid);
+            //userTrackAjax.getNextRecord(options.lastid);
         }
     }
 
