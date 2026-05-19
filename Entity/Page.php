@@ -1,290 +1,164 @@
 <?php
 
+declare(strict_types=1);
+
 namespace benmacha\mousetracker\Entity;
 
+use benmacha\mousetracker\Repository\PageRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Page
- *
- * @ORM\Table(name="tracker__page")
- * @ORM\Entity(repositoryClass="\benmacha\mousetracker\Repository\PageRepository")
- */
+#[ORM\Entity(repositoryClass: PageRepository::class)]
+#[ORM\Table(name: 'tracker__page')]
 class Page
 {
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="id", type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Client", inversedBy="page")
-     * @ORM\JoinColumn(name="clientID", referencedColumnName="id", onDelete="CASCADE",)
-     */
-    private $clientID;
+    #[ORM\ManyToOne(targetEntity: Client::class, inversedBy: 'pages')]
+    #[ORM\JoinColumn(name: 'clientID', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    private ?Client $client = null;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="resolution", type="string", length=15)
-     */
-    private $resolution;
+    #[ORM\Column(type: 'string', length: 15)]
+    private string $resolution = '';
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="url", type="text")
-     */
-    private $url;
+    #[ORM\Column(type: 'text')]
+    private string $url = '';
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="domain", type="string", length=50)
-     */
-    private $domain;
+    #[ORM\Column(type: 'string', length: 100)]
+    private string $domain = '';
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="source", type="text")
-     */
-    private $source;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $source = null;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="versionMobile", type="string", length=50)
-     */
-    private $versionMobile;
+    #[ORM\Column(name: 'versionMobile', type: 'string', length: 50, nullable: true)]
+    private ?string $versionMobile = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity="Data", mappedBy="clientPageID", cascade={"persist", "remove"})
-     */
-    private $data;
+    /** @var Collection<int, Data> */
+    #[ORM\OneToMany(mappedBy: 'page', targetEntity: Data::class, cascade: ['persist', 'remove'])]
+    private Collection $data;
 
-  /**
-   * @var \DateTime
-   *
-   * @ORM\Column(name="date", type="datetime")
-   */
-  private $date;
+    #[ORM\Column(type: 'datetime_immutable')]
+    private \DateTimeImmutable $date;
 
-    /**
-     * Data constructor.
-     */
     public function __construct()
     {
-        $this->date = new \DateTime();
-        $this->data = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->date = new \DateTimeImmutable();
+        $this->data = new ArrayCollection();
     }
 
-
-    /**
-     * Get id
-     *
-     * @return integer 
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * Set resolution
-     *
-     * @param string $resolution
-     * @return Page
-     */
-    public function setResolution($resolution)
+    public function getClient(): ?Client
+    {
+        return $this->client;
+    }
+
+    public function setClient(?Client $client): self
+    {
+        $this->client = $client;
+
+        return $this;
+    }
+
+    public function getResolution(): string
+    {
+        return $this->resolution;
+    }
+
+    public function setResolution(string $resolution): self
     {
         $this->resolution = $resolution;
 
         return $this;
     }
 
-    /**
-     * Get resolution
-     *
-     * @return string 
-     */
-    public function getResolution()
+    public function getUrl(): string
     {
-        return $this->resolution;
+        return $this->url;
     }
 
-    /**
-     * Set url
-     *
-     * @param string $url
-     * @return Page
-     */
-    public function setUrl($url)
+    public function setUrl(string $url): self
     {
         $this->url = $url;
 
         return $this;
     }
 
-    /**
-     * Get url
-     *
-     * @return string 
-     */
-    public function getUrl()
+    public function getDomain(): string
     {
-        return $this->url;
+        return $this->domain;
     }
 
-    /**
-     * Set domain
-     *
-     * @param string $domain
-     * @return Page
-     */
-    public function setDomain($domain)
+    public function setDomain(string $domain): self
     {
         $this->domain = $domain;
 
         return $this;
     }
 
-    /**
-     * Get domain
-     *
-     * @return string 
-     */
-    public function getDomain()
+    public function getSource(): ?string
     {
-        return $this->domain;
+        return $this->source;
     }
 
-    /**
-     * Set source
-     *
-     * @param string $source
-     * @return Page
-     */
-    public function setSource($source)
+    public function setSource(?string $source): self
     {
         $this->source = $source;
 
         return $this;
     }
 
-    /**
-     * Get source
-     *
-     * @return string 
-     */
-    public function getSource()
+    public function getVersionMobile(): ?string
     {
-        return $this->source;
+        return $this->versionMobile;
     }
 
-    /**
-     * Set versionMobile
-     *
-     * @param string $versionMobile
-     * @return Page
-     */
-    public function setVersionMobile($versionMobile)
+    public function setVersionMobile(?string $versionMobile): self
     {
         $this->versionMobile = $versionMobile;
 
         return $this;
     }
 
-    /**
-     * Get versionMobile
-     *
-     * @return string 
-     */
-    public function getVersionMobile()
+    public function getDate(): \DateTimeImmutable
     {
-        return $this->versionMobile;
+        return $this->date;
     }
 
-    /**
-     * Set date
-     *
-     * @param \DateTime $date
-     * @return Page
-     */
-    public function setDate($date)
+    public function setDate(\DateTimeImmutable $date): self
     {
         $this->date = $date;
 
         return $this;
     }
 
-    /**
-     * Get date
-     *
-     * @return \DateTime 
-     */
-    public function getDate()
-    {
-        return $this->date;
-    }
-
-    /**
-     * Set clientID
-     *
-     * @param \benmacha\mousetracker\Entity\Client $clientID
-     * @return Page
-     */
-    public function setClientID(\benmacha\mousetracker\Entity\Client $clientID = null)
-    {
-        $this->clientID = $clientID;
-
-        return $this;
-    }
-
-    /**
-     * Get clientID
-     *
-     * @return \benmacha\mousetracker\Entity\Client
-     */
-    public function getClientID()
-    {
-        return $this->clientID;
-    }
-
-    /**
-     * Add data
-     *
-     * @param \benmacha\mousetracker\Entity\Data $data
-     * @return Page
-     */
-    public function addDatum(\benmacha\mousetracker\Entity\Data $data)
-    {
-        $this->data[] = $data;
-
-        return $this;
-    }
-
-    /**
-     * Remove data
-     *
-     * @param \benmacha\mousetracker\Entity\Data $data
-     */
-    public function removeDatum(\benmacha\mousetracker\Entity\Data $data)
-    {
-        $this->data->removeElement($data);
-    }
-
-    /**
-     * Get data
-     *
-     * @return \Doctrine\Common\Collections\Collection 
-     */
-    public function getData()
+    /** @return Collection<int, Data> */
+    public function getData(): Collection
     {
         return $this->data;
+    }
+
+    public function addData(Data $data): self
+    {
+        if (!$this->data->contains($data)) {
+            $this->data->add($data);
+            $data->setPage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeData(Data $data): self
+    {
+        $this->data->removeElement($data);
+
+        return $this;
     }
 }

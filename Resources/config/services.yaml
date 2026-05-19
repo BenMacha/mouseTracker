@@ -1,0 +1,27 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    benmacha\mousetracker\Controller\:
+        resource: '../../Controller/'
+        tags: ['controller.service_arguments']
+
+    benmacha\mousetracker\Repository\:
+        resource: '../../Repository/'
+
+    benmacha\mousetracker\Services\Tracker:
+        arguments:
+            $settings:
+                record_click: '%mouse_tracker.record_click%'
+                record_move: '%mouse_tracker.record_move%'
+                record_keyboard: '%mouse_tracker.record_keyboard%'
+                percentage_recorded: '%mouse_tracker.percentage_recorded%'
+                ignore_ips: '%mouse_tracker.ignore_ips%'
+                disable_mobile: '%mouse_tracker.disable_mobile%'
+        public: true
+
+    mouse_tracker:
+        alias: benmacha\mousetracker\Services\Tracker
+        public: true

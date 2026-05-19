@@ -1,0 +1,4 @@
+mouse_tracker:
+    resource: '../../Controller/'
+    type: attribute
+    prefix: /tracker

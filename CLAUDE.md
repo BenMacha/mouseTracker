@@ -4,40 +4,51 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-`benmacha/mousetracker` — a Symfony 2.8 bundle (`TrackerBundle`, namespace `benmacha\mousetracker`) that records visitor mouse movements, clicks, and page snapshots (a self-hosted Mouseflow-style tool). Distributed via Packagist as a `symfony-bundle`. PHP >= 5.3.9.
+`benmacha/mousetracker` — Symfony bundle (`TrackerBundle`, namespace `benmacha\mousetracker`) that records visitor mouse movements, clicks, and DOM snapshots. Self-hosted Mouseflow-style tool. v2.x targets PHP 8.1+ and Symfony 5.4 / 6.4 / 7.x. Distributed via Packagist as a `symfony-bundle`.
 
 ## Common commands
 
-This is a bundle, not an app — there is no standalone runtime. Commands below assume it's installed inside a host Symfony 2.8 app via `composer require benmacha/mousetracker dev-master`.
+This is a bundle, not an app. Commands below are for working on the bundle itself.
 
 - Install deps: `composer install`
-- Create DB tables (`tracker__client`, `tracker__page`, `tracker__data`): `php app/console doctrine:schema:update --force`
-- Build the minified tracker JS bundle (required for `mousetrackerService.build()` to emit a working script tag): `php app/console assetic:dump`
-- Tests (per `.travis.yml`): `phpunit --verbose` — note: no test suite exists in the repo yet.
+- Run tests: `vendor/bin/phpunit`
+- Run a single test file: `vendor/bin/phpunit tests/Entity/PageTest.php`
+- Run a single test method: `vendor/bin/phpunit --filter testClientAssociationIsBidirectional`
+- Lint PHP syntax across the bundle: `find . -path ./vendor -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l`
 
-The host app must register the bundle in `AppKernel`, import `@TrackerBundle/Controller/` into routing under prefix `/tracker`, import `@TrackerBundle/Resources/config/services.yml`, expose `@twig_tracker` as the Twig global `mousetrackerService`, and configure assetic with the `scssphp` + `jsqueeze` filters (see `README.md`).
+Host-app integration (consumers of the bundle):
+
+- Create DB tables (`tracker__client`, `tracker__page`, `tracker__data`): `php bin/console doctrine:schema:update --force`
+- Publish the tracker JS asset: `php bin/console assets:install --symlink public/`
 
 ## Architecture
 
 Two halves wired through Doctrine entities:
 
-**Client side — `Resources/public/js/tracker.js`** is a ~25 KB jQuery plugin (`UST` global) that batches mouse moves, clicks, keystrokes, and DOM snapshots, then POSTs them. URLs are injected by `Resources/views/Tracker/Front.html.twig` as JS globals (`URL_data`, `URL_client`, etc.) before the assetic-bundled `tracker.min.js` is loaded. The Twig service `Services/Tracker::build()` renders that fragment — host apps drop `{{ mousetrackerService.build() }}` just before `</body>`.
+**Client side — `Resources/public/js/tracker.js`** is a ~440-line vanilla JS tracker (`UST` global) that batches mouse moves, clicks, keystrokes, and DOM snapshots, then POSTs them via `fetch`. URL endpoints and runtime settings are injected by `Resources/views/Tracker/Front.html.twig` as `window.MouseTrackerConfig`. The Twig service `Services/Tracker::build()` renders that fragment — host apps drop `{{ mouse_tracker_service.build()|raw }}` just before `</body>`.
 
-**Server side — `Controller/DefaultController.php`** exposes the four ingest endpoints the JS calls (routes are annotation-based, prefixed `/tracker` by the host):
+**Server side — `Controller/DefaultController.php`** exposes the four ingest endpoints the JS calls (routes are attribute-based; host imports `Resources/config/routes.yaml` under prefix `/tracker`):
 - `POST /createClient` — upserts a `Client` and creates a `Page` row per visit
 - `POST /addData` — appends a `Data` row (movements/clicks/partial DOM/cached records) to the current `Page`
-- `POST /clearPartial`, `POST /addTag` — currently no-op stubs returning `{}`
+- `POST /clearPartial`, `POST /addTag` — no-op stubs
 
-**Backend UI — `Controller/BackController.php`** (route prefix `/back`) renders `Resources/views/Backend/index.html.twig` and exposes JSON endpoints (`/getPages`, `/getClients`, `/getData`) consumed by an in-bundle replay UI. `BackController::getClientsAction` currently hard-codes browser/ip/timeSpent fields — real values aren't captured yet.
+**Backend UI — `Controller/BackController.php`** (route prefix `/back`) renders the in-bundle replay UI at `Resources/views/Backend/index.html.twig` and exposes JSON endpoints (`/getPages`, `/getClients`, `/getData`) consumed by it. **Public by default — gate behind firewall config in any real deployment.**
 
-**Entity graph:** `Client` 1—N `Page` 1—N `Data`. `Page.clientID` cascades on delete; `Data.partial` stores JSON-encoded DOM snapshots that the replay UI decodes per-row. `PageRepository::findDsitinct` (sic — typo is in the public API) returns distinct URLs.
+**Entity graph:** `Client` 1—N `Page` 1—N `Data`. Foreign keys (`Page.clientID`, `Data.clientPageID`) cascade on delete. `Data.partial` stores JSON-encoded DOM snapshots that the replay UI decodes per-row. `PageRepository::findDistinctUrls()` returns distinct URLs (optionally filtered by domain).
 
-**DI quirk:** `DependencyInjection/MouseTrackerExtension::load` mutates the host's `assetic.bundles` parameter to append `'TrackerBundle'` so assetic picks up the bundled JS — without this, `assetic:dump` won't process `tracker.js`.
+**Config tree (`mouse_tracker:`):** declared by `DependencyInjection/Configuration.php`; loaded into container parameters by `MouseTrackerExtension`. Parameters are passed into the `Tracker` service constructor, then JSON-encoded into the script tag as `window.MouseTrackerConfig.settings`. JS reads them at boot.
 
 ## Gotchas
 
-- The tracker JS hard-codes IP and User-Agent blocklists (Googlebot IPs, mobile UAs) in `UST.settings`. Changes to recording behavior usually live there, not server-side.
-- `tracker.js` requires jQuery >= 1.8.1 to be loaded by the host page *before* `mousetrackerService.build()`.
-- Two endpoints (`clearPartial`, `addTag`) are intentional stubs — the JS calls them but the server discards the payload.
-- `addDataAction` has a known quirk: when `cachedRecords` is non-null it overwrites `partial` with `cachedRecords` *and* still calls `setCachedRecords`, so both columns get the same value. Treat this as load-bearing unless you've checked the replay UI.
-- Repository method name `findDsitinct` is misspelled but referenced from `BackController` — rename in both places if you fix it.
+- `tracker.js` is iframe-aware: if it detects `top !== self` it switches to a postMessage receiver that responds to the replay UI's `CSS`/`EL`/`HOV`/`CLK`/`VAL`/`SZ`/`PTH`/`SCR`/`STATIC`/`screenshot` tasks. Changes to event names must be mirrored in `Resources/views/Backend/index.html.twig` (the replay UI script).
+- `clearPartial` and `addTag` endpoints are intentional stubs — the JS calls them but the server discards the payload.
+- The hard-coded IP allowlist (`l2.io/ip.js`) only runs when `ignore_ips` is non-empty. It's an external network call; disable it by leaving the array empty in config.
+- `BackController` and `DefaultController` controllers and `Services/Tracker` are explicitly registered as `public: true` in `services.yaml` so the Twig global alias `mouse_tracker` can resolve them.
+- `Resources/` must NOT be in `.gitattributes` export-ignore — it contains the JS and twig views that runtime needs. (v1.x had this bug.)
+- v1 used `$page->getClientID()` returning a `Client` object (misleading name). v2 renames to `$page->getClient()`. DB column name unchanged.
+
+## Testing strategy
+
+Tests live in `tests/` and mirror the source tree (e.g., `tests/DependencyInjection/ConfigurationTest.php`). They are unit tests only — no kernel boot, no DB. The `Configuration` test verifies the tree builder, the `Extension` test verifies service registration into a bare `ContainerBuilder`, and entity tests verify bidirectional association methods. Adding integration tests would require booting a Symfony kernel; that scaffolding is not present.
+
+CI matrix (`.github/workflows/ci.yml`): PHP 8.1/8.2/8.3 × Symfony 5.4/6.4/7.x. Uses Symfony Flex to pin the version under test.

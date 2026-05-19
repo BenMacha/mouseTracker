@@ -1,116 +1,91 @@
 <?php
 
+declare(strict_types=1);
+
 namespace benmacha\mousetracker\Controller;
 
-use benmacha\mousetracker\Entity\Data;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use benmacha\mousetracker\Repository\ClientRepository;
+use benmacha\mousetracker\Repository\PageRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
-
-/**
- * Back controller.
- *
- * @Route("back")
- */
-class BackController extends Controller
+#[Route('/back')]
+final class BackController extends AbstractController
 {
-    /**
-     * @Route("/" ,name="mousetracker_backindex")
-     */
-    public function indexAction()
-    {
-        return $this->render('TrackerBundle:Backend:index.html.twig');
+    public function __construct(
+        private readonly ClientRepository $clientRepository,
+        private readonly PageRepository $pageRepository,
+    ) {
     }
 
-  /**
-   * @Route("/getPages" , name="mousetracker_back_getPage")
-   * @Method({"POST"})
-   * @param Request $request
-   *
-   * @return JsonResponse
-   */
-    public function getPagesAction(Request $request)
+    #[Route('/', name: 'mousetracker_backindex')]
+    public function index(): Response
     {
-        $domain = $request->get('domain');
-
-        $em = $this->getDoctrine()->getManager();
-        $pages = $em->getRepository("TrackerBundle:Page")->findDsitinct($domain);
-        $array = array();
-
-        /** @var Page $page */
-        foreach ($pages as $page) {
-            $array[] = $page['url'];
-        }
-
-        return new JsonResponse($array);
+        return $this->render('@Tracker/Backend/index.html.twig');
     }
 
-  /**
-   * @Route("/getClients" , name="mousetracker_back_getClient")
-   * @Method({"POST"})
-   * @return JsonResponse
-   * @internal param Request $request
-   *
-   */
-    public function getClientsAction()
+    #[Route('/getPages', name: 'mousetracker_back_getPage', methods: ['POST'])]
+    public function getPages(Request $request): JsonResponse
     {
+        $domain = $request->request->get('domain');
+        $rows = $this->pageRepository->findDistinctUrls($domain);
 
-        $em = $this->getDoctrine()->getManager();
-        $clients = $em->getRepository("TrackerBundle:Client")->findAll();
-        $array = array();
+        return new JsonResponse(array_column($rows, 'url'));
+    }
 
-        /** @var Client $client */
+    #[Route('/getClients', name: 'mousetracker_back_getClient', methods: ['POST'])]
+    public function getClients(): JsonResponse
+    {
+        $clients = $this->clientRepository->findAll();
+        $payload = ['clients' => []];
+
         foreach ($clients as $client) {
-            foreach($client->getPage() as $page){
-                $array["clients"][] = array(
-                  'date'      => $page->getDate()->format('Y-m-d H:i:s'),
-/*                  'ip'        => '41.226.81.154',*/
-                  'resolution'=> $page->getResolution(),
-                  'browser'   => 'chrome 55',
-                  'tags'      => '',
-                  'pageHistory'=> $page->getUrl(),
-                  'referrer'  => '',  //source page
-                  'timeSpent' => 100, //navigation time in second
-                  'id'        => $client->getId(),
-                  'clientid'  => $client->getId(),
-                  'recordid'  => $page->getId(),
-                  'nr'        => 1,  //number of page visited
-                  'token'     => '41.226.81.154#'.$client->getToken().'@chrome 55',
-
-                );
+            foreach ($client->getPages() as $page) {
+                $payload['clients'][] = [
+                    'date' => $page->getDate()->format('Y-m-d H:i:s'),
+                    'resolution' => $page->getResolution(),
+                    'browser' => '',
+                    'tags' => '',
+                    'pageHistory' => $page->getUrl(),
+                    'referrer' => $page->getSource(),
+                    'timeSpent' => 0,
+                    'id' => $client->getId(),
+                    'clientid' => $client->getId(),
+                    'recordid' => $page->getId(),
+                    'nr' => 1,
+                    'token' => $client->getToken(),
+                ];
             }
-
         }
 
-
-        return new JsonResponse($array);
+        return new JsonResponse($payload);
     }
 
-  /**
-   * @Route("/getData" , name="mousetracker_back_getData")
-   * @Method({"POST"})
-   * @return JsonResponse
-   * @internal param Request $request
-   *
-   */
-    public function getDataAction(Request $request)
+    #[Route('/getData', name: 'mousetracker_back_getData', methods: ['POST'])]
+    public function getData(Request $request): JsonResponse
     {
+        $recordId = $request->request->get('recordid');
+        $page = null !== $recordId ? $this->pageRepository->find((int) $recordId) : null;
 
-        $em = $this->getDoctrine()->getManager();
-        $datas = $em->getRepository("TrackerBundle:Page")->find($request->get('recordid'))->getData();
-        $array = array();
-        /** @var Data $data */
-        foreach ($datas as $data) {
-          $tmp = json_decode($data->getPartial());
-          for($i = 0; $i < count($tmp); $i++){
-             $array[] = $tmp[$i];
-          }
-
+        if (null === $page) {
+            return new JsonResponse([]);
         }
 
-        return new JsonResponse($array);
+        $merged = [];
+        foreach ($page->getData() as $data) {
+            $partial = $data->getPartial();
+            if (null === $partial || '' === $partial) {
+                continue;
+            }
+            $decoded = json_decode($partial, true);
+            if (is_array($decoded)) {
+                $merged = array_merge($merged, $decoded);
+            }
+        }
+
+        return new JsonResponse($merged);
     }
 }

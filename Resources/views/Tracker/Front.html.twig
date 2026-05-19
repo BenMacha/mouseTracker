@@ -1,10 +1,13 @@
-<script >
-        var URL_Path    = '{{ app.request.getSchemeAndHttpHost() }}'
-        var URL_data    = '{{ path('mousetracker_addData') }}'
-        var URL_tag     = '{{ path('mousetracker_addTag') }}'
-        var URL_partial = '{{ path('mousetracker_clearPartial') }}'
-        var URL_client  = '{{ path('mousetracker_createClient') }}'
+<script>
+    window.MouseTrackerConfig = {
+        urls: {
+            base: '{{ app.request.getSchemeAndHttpHost() }}',
+            createClient: '{{ path('mousetracker_createClient') }}',
+            addData: '{{ path('mousetracker_addData') }}',
+            addTag: '{{ path('mousetracker_addTag') }}',
+            clearPartial: '{{ path('mousetracker_clearPartial') }}'
+        },
+        settings: {{ settings|default({})|json_encode|raw }}
+    };
 </script>
-{% javascripts "@TrackerBundle/Resources/public/js/tracker.js" filter="?jsqueeze" output="bundles/mousetracker/js/tracker.min.js" %}
-<script type="text/javascript" src="{{ asset_url }}"></script>
-{% endjavascripts %}
+<script defer src="{{ asset('bundles/tracker/js/tracker.js') }}"></script>

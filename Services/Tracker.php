@@ -1,33 +1,26 @@
 <?php
+
+declare(strict_types=1);
+
 namespace benmacha\mousetracker\Services;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Twig_Environment as Environment;
+use Twig\Environment;
 
-class Tracker
+final class Tracker
 {
-  protected $container;
-  protected $twig;
+    /**
+     * @param array<string, mixed> $settings
+     */
+    public function __construct(
+        private readonly Environment $twig,
+        private readonly array $settings = [],
+    ) {
+    }
 
-  /**
-   * Tracker constructor.
-   *
-   * @param Environment $twig
-   * @param ContainerInterface $container
-   */
-  public function __construct(Environment $twig, ContainerInterface $container)
-  {
-    $this->container = $container;
-    $this->twig = $twig;
-  }
-
-  /**
-   * @param $domain
-   * @param $title
-   * @param bool $ul
-   */
-  public function build()
-  {
-    return $this->twig->display('TrackerBundle:Tracker:Front.html.twig');
-  }
+    public function build(): string
+    {
+        return $this->twig->render('@Tracker/Tracker/Front.html.twig', [
+            'settings' => $this->settings,
+        ]);
+    }
 }

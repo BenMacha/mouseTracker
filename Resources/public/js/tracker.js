@@ -1,684 +1,698 @@
-'use strict';
-var UST = {
-    DEBUG: false,
-    settings: {
-        isStatic: true,
-        recordClick: true,
-        recordMove: true,
-        recordKeyboard: true,
-        delay: 200,
-        maxMoves: 800,
-        serverPath: URL_Path,
-        percentangeRecorded: 100,
-        ignoreGET: ['utm_source', 'utm_ccc_01', 'gclid', 'utm_campaign', 'utm_medium'],
-        ignoreIPs: ['66.249.66.50', '66.249.66.20', '66.249.66.56', '66.249.66.17', '66.249.66.20', '66.249.66.50', '66.249.66.56', '66.249.66.14'],
-        minIdleTime: 10,
-        disableMobileTracking: false
-    }
-};
-UST.randomToken = function () {
-    return Math.random().toString(36).substr(2) + Math.random().toString(36).substr(2);
-};
-UST.enableRecord = function () {
-    localStorage.noRecord = 'false';
-};
-UST.disableRecord = function () {
-    localStorage.noRecord = 'true';
-};
-UST.canRecord = function () {
-    UST.isMobileDevice = (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i).test(navigator.userAgent);
-    if (UST.isMobileDevice && UST.settings.disableMobileTracking) {
-        return false;
-    }
-    if (top !== self) {
-        return false;
-    }
-    if (localStorage.noRecord === 'true') {
-        return false;
-    }
-    if (localStorage.getItem('token') === null) {
-        if (Math.random() * 100 >= UST.settings.percentangeRecorded) {
-            UST.disableRecord();
-            return false;
+/*!
+ * MouseTracker — vanilla JS tracker
+ * https://github.com/BenMacha/mouseTracker
+ *
+ * Records mouse movements, clicks, scrolls, resizes and form-blur values
+ * and ships them to the bundle's ingest endpoints. No jQuery dependency.
+ */
+(function (window, document) {
+    'use strict';
+
+    var config = window.MouseTrackerConfig || {};
+    var URLS = config.urls || {};
+    var USER_SETTINGS = config.settings || {};
+
+    var UST = {
+        DEBUG: false,
+        settings: {
+            isStatic: true,
+            recordClick: USER_SETTINGS.record_click !== false,
+            recordMove: USER_SETTINGS.record_move !== false,
+            recordKeyboard: USER_SETTINGS.record_keyboard !== false,
+            delay: 200,
+            maxMoves: 800,
+            serverPath: URLS.base || '',
+            percentageRecorded: typeof USER_SETTINGS.percentage_recorded === 'number'
+                ? USER_SETTINGS.percentage_recorded : 100,
+            ignoreGET: ['utm_source', 'utm_ccc_01', 'gclid', 'utm_campaign', 'utm_medium'],
+            ignoreIPs: USER_SETTINGS.ignore_ips || [],
+            minIdleTime: 10,
+            disableMobileTracking: USER_SETTINGS.disable_mobile === true
+        }
+    };
+
+    function debug() {
+        if (UST.DEBUG && window.console) {
+            console.log.apply(console, arguments);
         }
     }
-    return true;
-};
-UST.testRequirements = function () {
-    if (typeof jQuery === 'undefined')
-        return "Did you include jQuery before tracker.js?";
-    var versions = jQuery.fn.jquery.split('.');
-    var oldEnough = versions[0] > 1 || (versions[1] >= 8 && versions[2] >= 1);
-    if (!oldEnough)
-        console.log("Your jQuery version seems to be old. userTrack requires at least jQuery 1.8.1");
-    return 'ok';
-};
-UST.removeWpAdminBar = function () {
-    var bar = jQuery('#wpadminbar');
-    if (bar.length) {
-        var html = jQuery('html')[0];
-        html.style.setProperty('margin-top', '0px', 'important');
-        bar.hide();
-    }
-};
-UST.getContentDiv = function () {
-    var mostProbable = jQuery('body');
-    var maxP = 0;
-    var documentWidth = jQuery(document).width();
-    var documentHeight = jQuery(document).height();
-    jQuery('div').each(function () {
-        var probability = 0;
-        var t = jQuery(this);
-        if (t.css('position') === 'static' || t.css('position') === 'relative')
-            probability += 2;
-        if (t.height() > documentHeight / 2)
-            probability += 3;
-        if (t.parent().is('body'))
-            probability++;
-        if (t.css('marginLeft') === t.css('marginRight'))
-            probability++;
-        if (t.attr('id') === 'content')
-            probability += 2;
-        if (t.attr('id') === 'container')
-            probability++;
-        if (t.width() !== documentWidth)
-            probability += 2;
-        if (probability > maxP) {
-            maxP = probability;
-            mostProbable = t;
-        }
-    });
-    return mostProbable;
-};
-UST.getContextPath = function () {
-    return UST.settings.serverPath;
-};
-UST.getDomain = function () {
-    if (document.domain.indexOf('www.') === 0) {
-        return document.domain.substr(4);
-    }
-    return document.domain;
-};
-UST.removeURLParam = function (key, url) {
-    var rtn = url.split("?")[0], param, paramsArr = [], queryString = (url.indexOf("?") !== -1) ? url.split("?")[1] : "";
-    if (queryString !== "") {
-        paramsArr = queryString.split("&");
-        for (var i = paramsArr.length - 1; i >= 0; i -= 1) {
-            param = paramsArr[i].split("=")[0];
-            if (param === key) {
-                paramsArr.splice(i, 1);
-            }
-        }
-        rtn = rtn + "?" + paramsArr.join("&");
-    }
-    return rtn;
-};
-UST.getCleanPageURL = function () {
-    var currentURL = window.location.pathname + window.location.search;
-    if (UST.lastURL !== currentURL) {
-        UST.lastURL = currentURL;
-        UST.cleanPageURL = currentURL;
-        for (var key in UST.settings.ignoreGET) {
-            var param = UST.settings.ignoreGET[key];
-            UST.cleanPageURL = UST.removeURLParam(param, UST.cleanPageURL);
-            if (UST.cleanPageURL[UST.cleanPageURL.length - 1] === '?') {
-                UST.cleanPageURL = UST.cleanPageURL.slice(0, -1);
-            }
-        }
-    }
-    return UST.cleanPageURL;
-};
-UST.coord4 = {
-    fillZeros: function (x) {
-        x = x.toString();
-        while (x.length < 4) {
-            x = '0' + x;
-        }
-        return x;
-    }, get2DPoint: function (x) {
-        x = x.toString();
-        var p = {x: x.substring(0, 4), y: x.substring(4)};
-        while (p.x[0] === '0') {
-            p.x = p.x.substring(1);
-        }
-        while (p.y[0] === '0') {
-            p.y = p.y.substring(1);
-        }
-        return p;
-    }
-};
-UST.addTag = function () {
-    console.log('addTag was called before initializing the function.');
-};
-UST.init = function () {
-    UST.DEBUG && console.log(localStorage);
-    var errorStarting = UST.testRequirements();
-    if (errorStarting !== 'ok') {
-        console.log('userTrack tracker could not be started.', errorStarting);
-        return;
-    }
-    if (!UST.canRecord())return;
-    var isCrossDomain = UST.settings.serverPath !== '';
-    UST.addTag = function (tag) {
-        if (typeof tag === 'undefined' || tag.length === 0) {
-            console.log("Tag cannot be empty!");
-            return 0;
-        }
-        jQuery.ajax({
-            type: "POST",
-            crossDomain: isCrossDomain,
-            data: {clientID: localStorage.getItem('clientID'), tagContent: tag},
-            url: getContextPath() + URL_tag,
-            success: function () {
-                UST.DEBUG && console.log('Tag ' + tag + 'added');
-            },
-            error: function (data) {
-                console.log(data.responseText);
+
+    function post(url, data) {
+        var body = new URLSearchParams();
+        Object.keys(data).forEach(function (k) {
+            if (data[k] !== null && data[k] !== undefined) {
+                body.append(k, data[k]);
             }
         });
-        return 1;
-    };
-    var getContextPath = UST.getContextPath;
-    var getDomain = UST.getDomain;
-    var partialLastIndex = -1;
-    UST.sendData = function (clientPageID) {
-        localStorage.setItem('lastTokenDate', new Date());
-        var data = {movements: '', clicks: '', partial: ''};
-        var toSend = [];
-        for (var v in movements) {
-            var obj = UST.coord4.get2DPoint(v);
-            obj.count = movements[v];
-            toSend.push(obj);
-        }
-        if (toSend.length > 3) {
-            data.movements = JSON.stringify(toSend);
-            movements = {};
-        }
-        toSend = [];
-        for (v in clicks) {
-            var obj = UST.coord4.get2DPoint(v);
-            obj.count = clicks[v];
-            toSend.push(obj);
-        }
-        if (toSend.length > 0) {
-            data.clicks = JSON.stringify(toSend);
-            clicks = {};
-        }
-        var cachedRecords = localStorage.getItem('record');
-        if (cachedRecords !== null && cachedRecords !== undefined) {
-            if (cachedRecords.length > 30) {
-                cachedRecords = JSON.parse(cachedRecords);
-                data.partial = cachedRecords.slice(partialLastIndex + 1, cachedRecords.length);
-                if (data.partial.length) {
-                    data.partial = JSON.stringify(data.partial);
+        return fetch(url, {
+            method: 'POST',
+            body: body,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+            credentials: 'same-origin',
+            keepalive: true
+        }).then(function (r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json().catch(function () { return {}; });
+        });
+    }
+
+    function getElementPath(el) {
+        if (!el || el.nodeType !== 1) return '';
+        if (el.id) return '#' + el.id;
+        var parts = [];
+        var node = el;
+        while (node && node.nodeType === 1 && node !== document.documentElement) {
+            var name = (node.localName || '').toLowerCase();
+            if (!name) break;
+            var parent = node.parentNode;
+            if (parent) {
+                var siblings = [];
+                for (var i = 0; i < parent.children.length; i++) {
+                    if (parent.children[i].localName === node.localName) {
+                        siblings.push(parent.children[i]);
+                    }
                 }
-                partialLastIndex = cachedRecords.length - 1;
+                if (siblings.length > 1) {
+                    name += ':nth-of-type(' + (siblings.indexOf(node) + 1) + ')';
+                }
+            }
+            parts.unshift(name);
+            node = parent;
+        }
+        return parts.join('>');
+    }
+
+    function closestSelector(el, predicate) {
+        var node = el;
+        while (node && node !== document) {
+            if (predicate(node)) return node;
+            node = node.parentNode;
+        }
+        return null;
+    }
+
+    UST.randomToken = function () {
+        return Math.random().toString(36).substr(2) + Math.random().toString(36).substr(2);
+    };
+
+    UST.enableRecord = function () { localStorage.setItem('noRecord', 'false'); };
+    UST.disableRecord = function () { localStorage.setItem('noRecord', 'true'); };
+
+    UST.canRecord = function () {
+        UST.isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
+        if (UST.isMobileDevice && UST.settings.disableMobileTracking) return false;
+        if (top !== self) return false;
+        if (localStorage.getItem('noRecord') === 'true') return false;
+        if (localStorage.getItem('token') === null) {
+            if (Math.random() * 100 >= UST.settings.percentageRecorded) {
+                UST.disableRecord();
+                return false;
             }
         }
-        if (data.movements.length || data.clicks.length || data.partial.length) {
-            jQuery.ajax({
-                type: "POST",
-                crossDomain: isCrossDomain,
-                data: {movements: data.movements, clicks: data.clicks, partial: data.partial, w: 'data', clientPageID: clientPageID},
-                url: getContextPath() + URL_data,
-                success: function () {
-                },
-                error: function (data) {
-                    console.log(data.responseText);
+        return true;
+    };
+
+    UST.testRequirements = function () {
+        if (typeof window.fetch !== 'function') return 'fetch API not available';
+        if (typeof window.localStorage !== 'object') return 'localStorage not available';
+        return 'ok';
+    };
+
+    UST.removeWpAdminBar = function () {
+        var bar = document.getElementById('wpadminbar');
+        if (bar) {
+            document.documentElement.style.setProperty('margin-top', '0px', 'important');
+            bar.style.display = 'none';
+        }
+    };
+
+    UST.getContentDiv = function () {
+        var mostProbable = document.body;
+        var maxP = 0;
+        var docW = document.documentElement.clientWidth;
+        var docH = document.documentElement.clientHeight;
+        var divs = document.getElementsByTagName('div');
+        for (var i = 0; i < divs.length; i++) {
+            var t = divs[i];
+            var style = getComputedStyle(t);
+            var probability = 0;
+            if (style.position === 'static' || style.position === 'relative') probability += 2;
+            if (t.offsetHeight > docH / 2) probability += 3;
+            if (t.parentNode === document.body) probability++;
+            if (style.marginLeft === style.marginRight) probability++;
+            if (t.id === 'content') probability += 2;
+            if (t.id === 'container') probability++;
+            if (t.offsetWidth !== docW) probability += 2;
+            if (probability > maxP) {
+                maxP = probability;
+                mostProbable = t;
+            }
+        }
+        return mostProbable;
+    };
+
+    UST.getContextPath = function () { return UST.settings.serverPath; };
+
+    UST.getDomain = function () {
+        return document.domain.indexOf('www.') === 0
+            ? document.domain.substr(4) : document.domain;
+    };
+
+    UST.removeURLParam = function (key, url) {
+        var rtn = url.split('?')[0];
+        var queryString = url.indexOf('?') !== -1 ? url.split('?')[1] : '';
+        if (queryString === '') return rtn;
+        var paramsArr = queryString.split('&');
+        for (var i = paramsArr.length - 1; i >= 0; i--) {
+            if (paramsArr[i].split('=')[0] === key) paramsArr.splice(i, 1);
+        }
+        return paramsArr.length ? rtn + '?' + paramsArr.join('&') : rtn;
+    };
+
+    UST.getCleanPageURL = function () {
+        var currentURL = window.location.pathname + window.location.search;
+        if (UST.lastURL !== currentURL) {
+            UST.lastURL = currentURL;
+            UST.cleanPageURL = currentURL;
+            UST.settings.ignoreGET.forEach(function (param) {
+                UST.cleanPageURL = UST.removeURLParam(param, UST.cleanPageURL);
+                if (UST.cleanPageURL.slice(-1) === '?') {
+                    UST.cleanPageURL = UST.cleanPageURL.slice(0, -1);
                 }
             });
         }
-        activityCount = 0;
+        return UST.cleanPageURL;
     };
-    UST.partialToFinal = function () {
-        var cachedRecords = localStorage.getItem('record');
-        var clientPageID = localStorage.getItem('clientPageID');
-        localStorage.removeItem('record');
-        UST.DEBUG && console.log('Trying to save final for clientPage #' + clientPageID, cachedRecords);
-        if (cachedRecords !== null && cachedRecords !== undefined) {
-            if (cachedRecords.length > 2) {
-                jQuery.ajax({
-                    type: "POST",
-                    data: {cachedRecords: cachedRecords, record: 'record', clientPageID: clientPageID},
-                    url: getContextPath() + URL_data,
-                    success: function () {
-                        UST.DEBUG && console.log('Final recording saved!');
-                    },
-                    error: function (data) {
-                        console.log(data.responseText);
-                    }
-                });
+
+    UST.coord4 = {
+        fillZeros: function (x) {
+            x = String(x);
+            while (x.length < 4) x = '0' + x;
+            return x;
+        },
+        get2DPoint: function (x) {
+            x = String(x);
+            var p = { x: x.substring(0, 4), y: x.substring(4) };
+            while (p.x[0] === '0') p.x = p.x.substring(1);
+            while (p.y[0] === '0') p.y = p.y.substring(1);
+            return p;
+        }
+    };
+
+    UST.addTag = function () {
+        debug('addTag called before init.');
+    };
+
+    UST.init = function () {
+        debug(localStorage);
+
+        var err = UST.testRequirements();
+        if (err !== 'ok') {
+            if (window.console) console.warn('MouseTracker could not start:', err);
+            return;
+        }
+        if (!UST.canRecord()) return;
+
+        var partialLastIndex = -1;
+
+        UST.addTag = function (tag) {
+            if (!tag || tag.length === 0) {
+                debug('Tag cannot be empty.');
+                return 0;
+            }
+            post(UST.getContextPath() + URLS.addTag, {
+                clientID: localStorage.getItem('clientID'),
+                tagContent: tag
+            }).then(function () { debug('Tag added:', tag); })
+              .catch(function (e) { debug('Tag error:', e); });
+            return 1;
+        };
+
+        UST.sendData = function (clientPageID) {
+            localStorage.setItem('lastTokenDate', new Date().toISOString());
+            var data = { movements: '', clicks: '', partial: '' };
+
+            var toSend = [];
+            Object.keys(movements).forEach(function (v) {
+                var obj = UST.coord4.get2DPoint(v);
+                obj.count = movements[v];
+                toSend.push(obj);
+            });
+            if (toSend.length > 3) {
+                data.movements = JSON.stringify(toSend);
+                movements = {};
+            }
+
+            toSend = [];
+            Object.keys(clicks).forEach(function (v) {
+                var obj = UST.coord4.get2DPoint(v);
+                obj.count = clicks[v];
+                toSend.push(obj);
+            });
+            if (toSend.length > 0) {
+                data.clicks = JSON.stringify(toSend);
+                clicks = {};
+            }
+
+            var cached = localStorage.getItem('record');
+            if (cached && cached.length > 30) {
+                try {
+                    var parsed = JSON.parse(cached);
+                    var slice = parsed.slice(partialLastIndex + 1);
+                    if (slice.length) data.partial = JSON.stringify(slice);
+                    partialLastIndex = parsed.length - 1;
+                } catch (e) { /* ignore malformed */ }
+            }
+
+            if (data.movements.length || data.clicks.length || data.partial.length) {
+                post(UST.getContextPath() + URLS.addData, {
+                    movements: data.movements,
+                    clicks: data.clicks,
+                    partial: data.partial,
+                    w: 'data',
+                    clientPageID: clientPageID
+                }).catch(function (e) { debug('sendData error:', e); });
+            }
+            activityCount = 0;
+        };
+
+        UST.partialToFinal = function () {
+            var cached = localStorage.getItem('record');
+            var clientPageID = localStorage.getItem('clientPageID');
+            localStorage.removeItem('record');
+            debug('partialToFinal for', clientPageID, cached);
+            if (cached && cached.length > 2) {
+                post(UST.getContextPath() + URLS.addData, {
+                    cachedRecords: cached,
+                    record: 'record',
+                    clientPageID: clientPageID
+                }).then(function () { debug('Final recording saved.'); })
+                  .catch(function (e) { debug('partialToFinal error:', e); });
             } else {
                 localStorage.removeItem('record');
             }
+        };
+
+        UST.partialToFinal();
+
+        var lastTokenDate = localStorage.getItem('lastTokenDate');
+        if (localStorage.getItem('token') === null
+            || (new Date() - Date.parse(lastTokenDate) > 40000)) {
+            localStorage.setItem('token', UST.randomToken());
+            localStorage.removeItem('clientID');
         }
-    };
-    UST.partialToFinal();
-    var lastTokenDate = localStorage.getItem('lastTokenDate');
-    if (localStorage.getItem('token') === null || (new Date() - Date.parse(lastTokenDate) > 40000)) {
-        localStorage.setItem('token', UST.randomToken());
-        localStorage.removeItem('clientID');
-    }
-    var token = localStorage.getItem('token');
-    localStorage.setItem('lastTokenDate', new Date());
-    var focused = true;
-    jQuery(document).hover(function () {
-        focused = true;
-    }, function () {
-        focused = false;
-    });
-    var lastDate = new Date();
-    var lastActionDate = new Date();
-    var scrollTimeout = null;
-    var maxTimeout = 3000;
-    var movements = {};
-    var clicks = {};
-    var record = [];
-    var activityCount = 0;
-    var lastX, lastY, relX = 0;
-    var offsetY = 0;
-    var wpAdminBar = jQuery('#wpadminbar');
-    if (wpAdminBar.length) {
-        offsetY = -wpAdminBar.height();
-    }
-    var cachedClicks = localStorage.getItem('clicks');
-    if (cachedClicks !== null && cachedClicks !== undefined) {
-        clicks = JSON.parse(cachedClicks);
-        UST.sendData(localStorage.getItem('clientPageID'));
-    }
-    var clientPageID;
-    var clientID = localStorage.getItem('clientID');
-    jQuery.ajax({
-        type: "POST",
-        crossDomain: isCrossDomain,
-        dataType: "JSON",
-        data: {
-            resolution: ((window.innerWidth || (document.documentElement.clientWidth + 17)) + ' ' + (window.innerHeight || (document.documentElement.clientHeight))),
+        var token = localStorage.getItem('token');
+        localStorage.setItem('lastTokenDate', new Date().toISOString());
+
+        var focused = true;
+        document.addEventListener('mouseenter', function () { focused = true; }, true);
+        document.addEventListener('mouseleave', function () { focused = false; }, true);
+        window.addEventListener('focus', function () { focused = true; });
+        window.addEventListener('blur', function () { focused = false; });
+
+        var lastDate = new Date();
+        var lastActionDate = new Date();
+        var scrollTimeout = null;
+        var maxTimeout = 3000;
+        var movements = {};
+        var clicks = {};
+        var record = [];
+        var activityCount = 0;
+        var lastX, lastY, relX = 0;
+        var offsetY = 0;
+        var maxMoves = UST.settings.maxMoves;
+
+        var wpAdminBar = document.getElementById('wpadminbar');
+        if (wpAdminBar) offsetY = -wpAdminBar.offsetHeight;
+
+        var cachedClicks = localStorage.getItem('clicks');
+        if (cachedClicks) {
+            try { clicks = JSON.parse(cachedClicks); } catch (e) { clicks = {}; }
+            UST.sendData(localStorage.getItem('clientPageID'));
+        }
+
+        var clientPageID;
+        var clientID = localStorage.getItem('clientID');
+
+        post(UST.getContextPath() + URLS.createClient, {
+            resolution: (window.innerWidth || (document.documentElement.clientWidth + 17))
+                + ' ' + (window.innerHeight || document.documentElement.clientHeight),
             token: token,
             url: UST.getCleanPageURL(),
-            domain: getDomain(),
+            domain: UST.getDomain(),
             clientID: clientID,
             source: document.referrer,
-            versionMobile: UST.isMobileDevice === true ? 1 : 0
-        },
-        url: getContextPath() + URL_client,
-        beforeSend: function (x) {
-            if (x && x.overrideMimeType) {
-                x.overrideMimeType("application/j-son;charset=UTF-8");
-            }
-        },
-        success: function (data) {
-            UST.DEBUG && console.log(data);
+            versionMobile: UST.isMobileDevice ? 1 : 0
+        }).then(function (data) {
+            debug(data);
             clientPageID = data.clientPageID;
-            localStorage.setItem('clientPageID', clientPageID);
-            localStorage.setItem('clientID', data.clientID);
+            localStorage.setItem('clientPageID', String(clientPageID));
+            localStorage.setItem('clientID', String(data.clientID));
             startSendingData();
-        },
-        error: function (data) {
-            console.log(data.responseText);
-        }
-    });
-    jQuery.ajax({
-        type: "POST",
-        data: {clientPageID: localStorage.getItem('clientPageID')},
-        crossDomain: isCrossDomain,
-        url: getContextPath() + URL_partial,
-        success: function () {
-            UST.DEBUG && console.log('partials cleared');
-        },
-        error: function (data) {
-            console.log("Could not clear partial!" + data.responseText);
-        }
-    });
-    if (UST.settings.isStatic) {
-        relX = parseInt(UST.getContentDiv().offset().left);
-    }
-    jQuery(document).on('click', '[data-UST_click_tag]', function () {
-        var tag = jQuery(this).attr('data-UST_click_tag');
-        UST.addTag(tag);
-    });
-    function addIdleTime(curDate, interpTime) {
-        var idleTime = curDate - lastActionDate;
-        if (typeof interpTime === 'undefined')interpTime = 0;
-        if (idleTime >= UST.settings.minIdleTime) {
-            idleTime -= interpTime;
-            if (idleTime >= UST.settings.minIdleTime) {
-                record.push({t: 'i', d: idleTime});
-            }
-        }
-        lastActionDate = curDate;
-    }
+        }).catch(function (e) { debug('createClient error:', e); });
 
-    function handleClickEvent(e, isRightClick) {
-        if (!focused) {
-            return;
-        }
-        if (typeof e.pageX === 'undefined') {
-            return;
-        }
-        if (UST.settings.recordClick) {
-            var p = UST.coord4.fillZeros(e.pageX - relX).toString() + UST.coord4.fillZeros(e.pageY + offsetY);
-            if (clicks[p] === undefined) {
-                clicks[p] = 0;
-            }
-            clicks[p]++;
-        }
-        addIdleTime(new Date());
-        var clickData = {t: 'c', x: e.pageX, y: e.pageY + offsetY};
-        if (isRightClick)clickData.r = 1;
-        record.push(clickData);
-        localStorage.setItem('record', JSON.stringify(record));
-        localStorage.setItem('url', UST.getCleanPageURL());
-        activityCount += 10;
-        if (jQuery(e.target).closest('a').length) {
-            localStorage.setItem('clicks', JSON.stringify(clicks));
-            localStorage.setItem('url', UST.getCleanPageURL());
-        }
-    }
+        post(UST.getContextPath() + URLS.clearPartial, {
+            clientPageID: localStorage.getItem('clientPageID')
+        }).then(function () { debug('partials cleared'); })
+          .catch(function (e) { debug('clearPartial error:', e); });
 
-    jQuery(document).click(handleClickEvent);
-    jQuery(document).on('contextmenu', function (e) {
-        handleClickEvent(e, true);
-    });
-    var resizeTimeout;
-    window.addEventListener('resize', function () {
-        if (!resizeTimeout) {
-            resizeTimeout = setTimeout(function () {
-                resizeTimeout = null;
-                addCurrentWindowSize();
-            }, 150);
+        if (UST.settings.isStatic) {
+            var contentRect = UST.getContentDiv().getBoundingClientRect();
+            relX = (contentRect.left + window.scrollX) | 0;
         }
-    }, true);
-    function addCurrentWindowSize() {
-        record.push({
-            t: 'r',
-            w: (window.innerWidth || (document.documentElement.clientWidth + 17)),
-            h: (window.innerHeight || (document.documentElement.clientHeight))
+
+        document.addEventListener('click', function (e) {
+            var tagEl = closestSelector(e.target, function (n) { return n.hasAttribute && n.hasAttribute('data-UST_click_tag'); });
+            if (tagEl) UST.addTag(tagEl.getAttribute('data-UST_click_tag'));
+            handleClickEvent(e, false);
         });
-    }
+        document.addEventListener('contextmenu', function (e) {
+            handleClickEvent(e, true);
+        });
 
-    var lastScrollDate = undefined;
-    jQuery(window).scroll(function () {
-        var now = new Date();
-        if (lastScrollDate === undefined || now - lastScrollDate >= 100) {
-            UST.DEBUG && console.log('Scroll event recorded!');
-            lastScrollDate = now;
-            addIdleTime(now, 100);
-            record.push({t: 's', x: jQuery(window).scrollLeft(), y: jQuery(window).scrollTop()});
-            localStorage.setItem('record', JSON.stringify(record));
-            activityCount++;
-        }
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(function () {
-            UST.DEBUG && console.log('Scroll event recorded!');
-            addIdleTime(now, 100);
-            record.push({t: 's', x: jQuery(window).scrollLeft(), y: jQuery(window).scrollTop()});
-            localStorage.setItem('record', JSON.stringify(record));
-            lastScrollDate = new Date();
-            activityCount++;
-        }, 100);
-    });
-    jQuery(document).mousemove(function (e) {
-        if (!focused)
-            return;
-        var curDate = new Date();
-        var passed = curDate - lastDate;
-        if (passed < UST.settings.delay)
-            return;
-        addIdleTime(curDate, UST.settings.delay);
-        if (--UST.settings.maxMoves > 0 && passed < maxTimeout) {
-            if (lastX !== undefined && UST.settings.recordMove) {
-                var p = UST.coord4.fillZeros(lastX).toString() + UST.coord4.fillZeros(lastY);
-                if (!(lastX === 0 || lastY === 0)) {
-                    if (movements[p] === undefined)
-                        movements[p] = 0;
-                    movements[p]++;
+        function addIdleTime(curDate, interpTime) {
+            var idleTime = curDate - lastActionDate;
+            if (typeof interpTime === 'undefined') interpTime = 0;
+            if (idleTime >= UST.settings.minIdleTime) {
+                idleTime -= interpTime;
+                if (idleTime >= UST.settings.minIdleTime) {
+                    record.push({ t: 'i', d: idleTime });
                 }
             }
-            if (!(lastX === 0 || lastY === 0)) {
-                record.push({x: e.pageX, y: e.pageY + offsetY});
+            lastActionDate = curDate;
+        }
+
+        function handleClickEvent(e, isRightClick) {
+            if (!focused) return;
+            if (typeof e.pageX === 'undefined') return;
+            if (UST.settings.recordClick) {
+                var p = UST.coord4.fillZeros(e.pageX - relX) + UST.coord4.fillZeros(e.pageY + offsetY);
+                clicks[p] = (clicks[p] || 0) + 1;
+            }
+            addIdleTime(new Date());
+            var clickData = { t: 'c', x: e.pageX, y: e.pageY + offsetY };
+            if (isRightClick) clickData.r = 1;
+            record.push(clickData);
+            localStorage.setItem('record', JSON.stringify(record));
+            localStorage.setItem('url', UST.getCleanPageURL());
+            activityCount += 10;
+            if (closestSelector(e.target, function (n) { return n.tagName === 'A'; })) {
+                localStorage.setItem('clicks', JSON.stringify(clicks));
+                localStorage.setItem('url', UST.getCleanPageURL());
+            }
+        }
+
+        var resizeTimeout;
+        window.addEventListener('resize', function () {
+            if (!resizeTimeout) {
+                resizeTimeout = setTimeout(function () {
+                    resizeTimeout = null;
+                    record.push({
+                        t: 'r',
+                        w: window.innerWidth || (document.documentElement.clientWidth + 17),
+                        h: window.innerHeight || document.documentElement.clientHeight
+                    });
+                }, 150);
+            }
+        }, true);
+
+        var lastScrollDate;
+        window.addEventListener('scroll', function () {
+            var now = new Date();
+            if (lastScrollDate === undefined || now - lastScrollDate >= 100) {
+                lastScrollDate = now;
+                addIdleTime(now, 100);
+                record.push({ t: 's', x: window.scrollX, y: window.scrollY });
                 localStorage.setItem('record', JSON.stringify(record));
                 activityCount++;
             }
-        }
-        lastDate = curDate;
-        lastX = e.pageX;
-        lastY = e.pageY + offsetY;
-        if (UST.settings.isStatic) {
-            lastX -= relX;
-        }
-    });
-    if (UST.settings.recordKeyboard) {
-        jQuery(document).on('blur', 'input:not([type="submit"]):not([type="button"]), textarea', function () {
-            if (jQuery(this).hasClass('noRecord') || jQuery(this).attr('type') == 'password')
-                return;
-            addIdleTime(new Date());
-            var uniquePath = jQuery(this).getPath();
-            record.push({t: 'b', p: uniquePath, v: jQuery(this).val()});
-            localStorage.setItem('record', JSON.stringify(record));
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(function () {
+                var n = new Date();
+                addIdleTime(n, 100);
+                record.push({ t: 's', x: window.scrollX, y: window.scrollY });
+                localStorage.setItem('record', JSON.stringify(record));
+                lastScrollDate = n;
+                activityCount++;
+            }, 100);
+        }, { passive: true });
+
+        document.addEventListener('mousemove', function (e) {
+            if (!focused) return;
+            var curDate = new Date();
+            var passed = curDate - lastDate;
+            if (passed < UST.settings.delay) return;
+            addIdleTime(curDate, UST.settings.delay);
+            if (--maxMoves > 0 && passed < maxTimeout) {
+                if (lastX !== undefined && UST.settings.recordMove && lastX !== 0 && lastY !== 0) {
+                    var p = UST.coord4.fillZeros(lastX) + UST.coord4.fillZeros(lastY);
+                    movements[p] = (movements[p] || 0) + 1;
+                }
+                if (lastX !== 0 && lastY !== 0 && lastX !== undefined) {
+                    record.push({ x: e.pageX, y: e.pageY + offsetY });
+                    localStorage.setItem('record', JSON.stringify(record));
+                    activityCount++;
+                }
+            }
+            lastDate = curDate;
+            lastX = e.pageX;
+            lastY = e.pageY + offsetY;
+            if (UST.settings.isStatic) lastX -= relX;
         });
-    }
-    function startSendingData() {
-        recurseSend(300);
-    }
 
-    function recurseSend(t) {
-        UST.DEBUG && console.log("Sending data for clientPageID: ", clientPageID);
-        if (t < 4000)
-            t += 400;
-        if (t > 2000 && localStorage.getItem('record') && activityCount > 10) {
-            t = 800;
+        if (UST.settings.recordKeyboard) {
+            document.addEventListener('blur', function (e) {
+                var el = e.target;
+                if (!el || (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA')) return;
+                if (el.type === 'submit' || el.type === 'button' || el.type === 'password') return;
+                if (el.classList && el.classList.contains('noRecord')) return;
+                addIdleTime(new Date());
+                record.push({ t: 'b', p: getElementPath(el), v: el.value });
+                localStorage.setItem('record', JSON.stringify(record));
+            }, true);
         }
-        UST.sendData(clientPageID);
-        setTimeout(function () {
-            recurseSend(t);
-        }, t);
-    }
 
-    jQuery.fn.getPath = function () {
-        if (this.length != 1)throw'Requires one element.';
-        var path, node = this;
-        if (node[0].id)return "#" + node[0].id;
-        while (node.length) {
-            var realNode = node[0], name = realNode.localName;
-            if (!name)break;
-            name = name.toLowerCase();
-            var parent = node.parent();
-            var siblings = parent.children(name);
-            if (siblings.length > 1) {
-                name += ':eq(' + siblings.index(realNode) + ')';
-            }
-            path = name + (path ? '>' + path : '');
-            node = parent;
+        function startSendingData() { recurseSend(300); }
+
+        function recurseSend(t) {
+            debug('Sending data for clientPageID:', clientPageID);
+            if (t < 4000) t += 400;
+            if (t > 2000 && localStorage.getItem('record') && activityCount > 10) t = 800;
+            UST.sendData(clientPageID);
+            setTimeout(function () { recurseSend(t); }, t);
         }
-        return path;
     };
-};
-var errorMessage = UST.testRequirements();
-if (errorMessage !== 'ok') {
-    console.log(errorMessage);
-}
-jQuery(function () {
-    if (UST.canRecord && UST.settings.ignoreIPs && UST.settings.ignoreIPs.length > 0 && UST.settings.ignoreIPs[0] !== '') {
-        var head = document.getElementsByTagName('head')[0];
-        var script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = '//www.l2.io/ip.js?var=ust_myIP';
-        var initCalled = false;
-        script.onreadystatechange = script.onload = function () {
-            if (initCalled)return;
-            initCalled = true;
-            if (UST.settings.ignoreIPs.indexOf(ust_myIP) === -1) {
-                UST.init();
-            } else {
-                UST.disableRecord();
-            }
-        };
-        head.appendChild(script);
-    } else {
-        UST.init();
+
+    function bootstrap() {
+        var err = UST.testRequirements();
+        if (err !== 'ok') {
+            if (window.console) console.warn('MouseTracker:', err);
+            return;
+        }
+        if (UST.canRecord && UST.settings.ignoreIPs && UST.settings.ignoreIPs.length > 0
+            && UST.settings.ignoreIPs[0] !== '') {
+            var script = document.createElement('script');
+            script.src = 'https://l2.io/ip.js?var=ust_myIP';
+            var called = false;
+            script.onload = script.onreadystatechange = function () {
+                if (called) return;
+                called = true;
+                if (UST.settings.ignoreIPs.indexOf(window.ust_myIP) === -1) {
+                    UST.init();
+                } else {
+                    UST.disableRecord();
+                }
+            };
+            document.head.appendChild(script);
+        } else {
+            UST.init();
+        }
     }
-});
-if (top !== self) {
-    var elementUnder = null, lastElement = null;
-    var lastEvent = null;
-    var receiver = function (event) {
-        if (event.origin == UST.settings.serverPath || true) {
-            if (event.data[0] == '!' || event.data[0] > 'A' && event.data[0] < 'z')
-                return;
-            var data = JSON.parse(event.data);
-            if (data.task !== undefined)
-                lastEvent = event;
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootstrap);
+    } else {
+        bootstrap();
+    }
+
+    /* ---- Iframe-mode receiver (for the replay UI) ---- */
+    if (top !== self) {
+        var elementUnder = null;
+        var lastElement = null;
+        var lastEvent = null;
+        var lastHover = null;
+        var lastParents = null;
+
+        function fireEvent(element, eventName) {
+            var evt = document.createEvent('HTMLEvents');
+            evt.initEvent(eventName, true, true);
+            return !element.dispatchEvent(evt);
+        }
+
+        function addHoverClasses(el) {
+            var parents = [];
+            var node = el;
+            while (node && node !== document) {
+                parents.push(node);
+                node = node.parentNode;
+            }
+            if (lastParents) {
+                lastParents.forEach(function (n) {
+                    if (n.classList) n.classList.remove('hover');
+                    fireEvent(n, 'mouseout');
+                });
+            }
+            parents.forEach(function (n) {
+                if (n.classList) n.classList.add('hover');
+                fireEvent(n, 'mouseover');
+            });
+            lastParents = parents;
+        }
+
+        function iframeHover() {
+            if (lastHover === elementUnder) return 1;
+            addHoverClasses(elementUnder);
+            lastHover = elementUnder;
+            return 0;
+        }
+
+        function iframeRealClick() {
+            if (elementUnder) {
+                if (elementUnder.nodeName === 'SELECT') {
+                    elementUnder.setAttribute('size', elementUnder.options.length);
+                } else {
+                    var anchor = closestSelector(elementUnder, function (n) { return n.tagName === 'A'; });
+                    var link = anchor ? anchor.getAttribute('href') : undefined;
+                    if (link && (link.indexOf('//') !== -1 || link.indexOf('www.') !== -1)
+                        && link.indexOf(window.location.host) === -1) {
+                        link = 'external';
+                    }
+                    if (link !== 'external') {
+                        if (!closestSelector(elementUnder, function (n) {
+                                return n.classList && n.classList.contains('UST_noClick');
+                            })) {
+                            fireEvent(elementUnder, 'click');
+                        } else {
+                            debug("Didn't trigger click — element has class UST_noClick.");
+                        }
+                    } else {
+                        if (window.console) console.warn('User has left the website');
+                    }
+                }
+            }
+            if (lastElement && lastElement.nodeName === 'SELECT') {
+                lastElement.setAttribute('size', 1);
+            }
+            lastElement = elementUnder;
+        }
+
+        window.addEventListener('message', function (event) {
+            if (typeof event.data !== 'string') return;
+            if (event.data[0] === '!' || (event.data[0] > 'A' && event.data[0] < 'z')) return;
+            var data;
+            try { data = JSON.parse(event.data); } catch (e) { return; }
+            if (data.task !== undefined) lastEvent = event;
+
             switch (data.task) {
-                case'CSS':
+                case 'CSS':
                     UST.removeWpAdminBar();
-                    for (var i = 0; ; ++i) {
-                        var classes = document.styleSheets[i];
-                        if (classes === undefined || classes === null)
-                            break;
-                        classes = classes.rules;
-                        if (classes === undefined || classes === null)
-                            continue;
-                        for (var x = 0; x < classes.length; x++) {
-                            var ss = "";
-                            if (classes[x].selectorText !== undefined) {
-                                classes[x].selectorText = classes[x].selectorText.replace(':hover', '.hover');
+                    for (var i = 0; ; i++) {
+                        var sheet = document.styleSheets[i];
+                        if (!sheet) break;
+                        var rules;
+                        try { rules = sheet.rules || sheet.cssRules; } catch (e) { continue; }
+                        if (!rules) continue;
+                        for (var x = 0; x < rules.length; x++) {
+                            if (rules[x].selectorText) {
+                                rules[x].selectorText = rules[x].selectorText.replace(':hover', '.hover');
                             }
                         }
                     }
                     break;
-                case'EL':
+                case 'EL':
                     elementUnder = document.elementFromPoint(data.x, data.y);
                     break;
-                case'HOV':
+                case 'HOV':
                     iframeHover();
                     break;
-                case'CLK':
+                case 'CLK':
                     iframeRealClick();
                     break;
-                case'VAL':
-                    jQuery(data.sel).trigger('focus').val(data.val);
+                case 'VAL':
+                    var target = document.querySelector(data.sel);
+                    if (target) {
+                        target.focus();
+                        if ('value' in target) target.value = data.val;
+                    }
                     break;
-                case'SZ':
+                case 'SZ':
                     event.source.postMessage(JSON.stringify({
                         task: 'SZ',
-                        w: Math.max(jQuery(document).width(), jQuery('html').width(), window.innerWidth),
-                        h: Math.max(jQuery(document).height(), jQuery('html').height(), window.innerHeight)
+                        w: Math.max(document.documentElement.scrollWidth,
+                                     document.documentElement.clientWidth,
+                                     window.innerWidth),
+                        h: Math.max(document.documentElement.scrollHeight,
+                                     document.documentElement.clientHeight,
+                                     window.innerHeight)
                     }), event.origin);
                     break;
-                case'PTH':
-                    event.source.postMessage(JSON.stringify({task: 'PTH', p: location.pathname}), event.origin);
+                case 'PTH':
+                    event.source.postMessage(JSON.stringify({
+                        task: 'PTH', p: location.pathname
+                    }), event.origin);
                     break;
-                case'SCR':
-                    jQuery(document).scrollTop(data.top);
-                    jQuery(document).scrollLeft(data.left);
+                case 'SCR':
+                    window.scrollTo(data.left || 0, data.top || 0);
                     break;
-                case'STATIC':
+                case 'STATIC':
+                    var rect = UST.getContentDiv().getBoundingClientRect();
                     event.source.postMessage(JSON.stringify({
                         task: 'STATIC',
-                        X: UST.getContentDiv().offset().left
+                        X: rect.left + window.scrollX
                     }), event.origin);
                     break;
-                case'addHtml2canvas':
-                    if (typeof window.html2canvasAdded === "undefined") {
+                case 'addHtml2canvas':
+                    if (typeof window.html2canvasAdded === 'undefined') {
                         window.html2canvasAdded = true;
-                        var s = document.createElement("script");
-                        s.type = "text/javascript";
-                        document.body.appendChild(s);
+                        var s = document.createElement('script');
                         s.onload = function () {
-                            event.source.postMessage(JSON.stringify({task: 'html2canvasAdded'}), event.origin);
+                            event.source.postMessage(
+                                JSON.stringify({ task: 'html2canvasAdded' }), event.origin);
                         };
                         s.src = UST.settings.serverPath + '/lib/html2canvas/html2canvas.js';
+                        document.body.appendChild(s);
                     } else {
-                        event.source.postMessage(JSON.stringify({task: 'html2canvasAdded'}), event.origin);
+                        event.source.postMessage(
+                            JSON.stringify({ task: 'html2canvasAdded' }), event.origin);
                     }
                     break;
-                case'screenshot':
-                    jQuery(document).scrollTop(0);
-                    jQuery(document).scrollLeft(0);
-                    html2canvas(document.body, {
-                        logging: false,
-                        useCORS: false,
-                        proxy: UST.settings.serverPath + '/lib/html2canvas/proxy.php',
-                    }).then(function (canvas) {
-                        var img = new Image();
-                        img.onload = function () {
-                            img.onload = null;
-                            event.source.postMessage(JSON.stringify({task: 'screenshot', img: img.src}), event.origin);
-                        };
-                        img.onerror = function () {
-                            img.onerror = null;
-                            window.console.log("Not loaded image from canvas.toDataURL");
-                        };
-                        img.src = canvas.toDataURL("image/png");
-                    });
+                case 'screenshot':
+                    window.scrollTo(0, 0);
+                    if (typeof window.html2canvas === 'function') {
+                        window.html2canvas(document.body, {
+                            logging: false, useCORS: false,
+                            proxy: UST.settings.serverPath + '/lib/html2canvas/proxy.php'
+                        }).then(function (canvas) {
+                            event.source.postMessage(JSON.stringify({
+                                task: 'screenshot',
+                                img: canvas.toDataURL('image/png')
+                            }), event.origin);
+                        });
+                    }
                     break;
             }
-        }
-    };
-    jQuery(document).scroll(function () {
-        var t = jQuery(this).scrollTop();
-        var l = jQuery(this).scrollLeft();
-        if (lastEvent !== null) {
-            lastEvent.source.postMessage(JSON.stringify({task: 'SCROLL', top: t, left: l}), lastEvent.origin);
-        } else {
-            console.log("Scroll event happened before parent call to iframe");
-        }
-    });
-    var iframeRealClick = function () {
-        if (elementUnder !== null) {
-            if (elementUnder.nodeName == 'SELECT') {
-                jQuery(elementUnder).get(0).setAttribute('size', elementUnder.options.length);
-            } else {
-                var link = jQuery(elementUnder).parents('a').eq(0);
-                if (link !== undefined) {
-                    link = link.attr('href');
-                    if (link !== undefined && (link.indexOf('//') != -1 || link.indexOf('www.') != -1) && link.indexOf(window.location.host) == -1)
-                        link = 'external';
-                }
-                if (link !== 'external') {
-                    if (!jQuery(elementUnder).closest('.UST_noClick').length) {
-                        fireEvent(elementUnder, 'click');
-                    } else {
-                        UST.DEBUG && console.log("Didn't trigger the click. Had class UST_noClick");
-                    }
-                } else {
-                    alertify.alert('User has left the website');
-                }
+        }, false);
+
+        window.addEventListener('scroll', function () {
+            if (lastEvent) {
+                lastEvent.source.postMessage(JSON.stringify({
+                    task: 'SCROLL',
+                    top: window.scrollY,
+                    left: window.scrollX
+                }), lastEvent.origin);
             }
-        }
-        if (lastElement !== null && lastElement.nodeName == 'SELECT')
-            jQuery(lastElement).get(0).setAttribute('size', 1);
-        lastElement = elementUnder;
-    };
-    var lastHover = null;
-    var lastParents = null;
-    var iframeHover = function () {
-        if (lastHover != elementUnder) {
-            var parents = jQuery(elementUnder).parents().addBack();
-            if (lastParents !== null) {
-                lastParents.removeClass("hover");
-                lastParents.trigger("mouseout");
-            }
-            parents.addClass("hover");
-            parents.trigger("mouseover");
-            lastParents = parents;
-        } else {
-            return 1;
-        }
-        lastHover = elementUnder;
-        return 0;
-    };
-    var fireEvent = function (element, event) {
-        var evt;
-        if (document.createEvent) {
-            evt = document.createEvent("HTMLEvents");
-            evt.initEvent(event, true, true);
-            return !element.dispatchEvent(evt);
-        } else {
-            evt = document.createEventObject();
-            return element.fireEvent('on' + event, evt);
-        }
-    };
-    window.addEventListener('message', receiver, false);
-}
+        }, { passive: true });
+    }
+
+    window.UST = UST;
+})(window, document);

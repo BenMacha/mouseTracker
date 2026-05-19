@@ -1,141 +1,88 @@
 <?php
 
+declare(strict_types=1);
+
 namespace benmacha\mousetracker\Entity;
 
+use benmacha\mousetracker\Repository\ClientRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Client
- *
- * @ORM\Table(name="tracker__client")
- * @ORM\Entity(repositoryClass="\benmacha\mousetracker\Repository\ClientRepository")
- */
+#[ORM\Entity(repositoryClass: ClientRepository::class)]
+#[ORM\Table(name: 'tracker__client')]
 class Client
 {
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="id", type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="token", type="text")
-     */
-    private $token;
+    #[ORM\Column(type: 'text')]
+    private string $token = '';
 
-    /**
-     * @ORM\OneToMany(targetEntity="Page", mappedBy="clientID", cascade={"persist", "remove"})
-     */
-    private $page;
+    /** @var Collection<int, Page> */
+    #[ORM\OneToMany(mappedBy: 'client', targetEntity: Page::class, cascade: ['persist', 'remove'])]
+    private Collection $pages;
 
-    /**
-     * @var \DateTime
-     *
-     * @ORM\Column(name="date", type="datetime")
-     */
-    private $date;
+    #[ORM\Column(type: 'datetime_immutable')]
+    private \DateTimeImmutable $date;
 
-    /**
-     * Data constructor.
-     */
     public function __construct()
     {
-        $this->date = new \DateTime();
-        $this->page = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->date = new \DateTimeImmutable();
+        $this->pages = new ArrayCollection();
     }
 
-
-    /**
-     * Get id
-     *
-     * @return integer 
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * Set token
-     *
-     * @param string $token
-     * @return Client
-     */
-    public function setToken($token)
+    public function getToken(): string
+    {
+        return $this->token;
+    }
+
+    public function setToken(string $token): self
     {
         $this->token = $token;
 
         return $this;
     }
 
-    /**
-     * Get token
-     *
-     * @return string 
-     */
-    public function getToken()
+    public function getDate(): \DateTimeImmutable
     {
-        return $this->token;
+        return $this->date;
     }
 
-    /**
-     * Set date
-     *
-     * @param \DateTime $date
-     * @return Client
-     */
-    public function setDate($date)
+    public function setDate(\DateTimeImmutable $date): self
     {
         $this->date = $date;
 
         return $this;
     }
 
-    /**
-     * Get date
-     *
-     * @return \DateTime 
-     */
-    public function getDate()
+    /** @return Collection<int, Page> */
+    public function getPages(): Collection
     {
-        return $this->date;
+        return $this->pages;
     }
 
-    /**
-     * Add page
-     *
-     * @param \benmacha\mousetracker\Entity\Page $page
-     * @return Client
-     */
-    public function addPage(\benmacha\mousetracker\Entity\Page $page)
+    public function addPage(Page $page): self
     {
-        $this->page[] = $page;
+        if (!$this->pages->contains($page)) {
+            $this->pages->add($page);
+            $page->setClient($this);
+        }
 
         return $this;
     }
 
-    /**
-     * Remove page
-     *
-     * @param \benmacha\mousetracker\Entity\Page $page
-     */
-    public function removePage(\benmacha\mousetracker\Entity\Page $page)
+    public function removePage(Page $page): self
     {
-        $this->page->removeElement($page);
-    }
+        $this->pages->removeElement($page);
 
-    /**
-     * Get page
-     *
-     * @return \Doctrine\Common\Collections\Collection 
-     */
-    public function getPage()
-    {
-        return $this->page;
+        return $this;
     }
 }

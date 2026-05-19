@@ -1,281 +1,149 @@
 <?php
 
+declare(strict_types=1);
+
 namespace benmacha\mousetracker\Entity;
 
+use benmacha\mousetracker\Repository\DataRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Data
- *
- * @ORM\Table(name="tracker__data")
- * @ORM\Entity(repositoryClass="\benmacha\mousetracker\Repository\DataRepository")
- */
+#[ORM\Entity(repositoryClass: DataRepository::class)]
+#[ORM\Table(name: 'tracker__data')]
 class Data
 {
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="id", type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
 
-    /**
-     * @var array
-     *
-     * @ORM\Column(name="movements", type="text", nullable=true)
-     */
-    private $movements;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $movements = null;
 
-    /**
-     * @var array
-     *
-     * @ORM\Column(name="clicks", type="text", nullable=true)
-     */
-    private $clicks;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $clicks = null;
 
-    /**
-     * @var array
-     *
-     * @ORM\Column(name="partial", type="text", nullable=true)
-     */
-    private $partial;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $partial = null;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="w", type="string", length=25, nullable=true)
-     */
-    private $w;
+    #[ORM\Column(type: 'string', length: 25, nullable: true)]
+    private ?string $w = null;
 
-    /**
-     * @var array
-     *
-     * @ORM\Column(name="cachedRecords", type="text", nullable=true)
-     */
-    private $cachedRecords;
+    #[ORM\Column(name: 'cachedRecords', type: 'text', nullable: true)]
+    private ?string $cachedRecords = null;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="record", type="string", length=25, nullable=true)
-     */
-    private $record;
+    #[ORM\Column(type: 'string', length: 25, nullable: true)]
+    private ?string $record = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Page", inversedBy="data")
-     * @ORM\JoinColumn(name="clientPageID", referencedColumnName="id", onDelete="CASCADE",)
-     */
-    private $clientPageID;
+    #[ORM\ManyToOne(targetEntity: Page::class, inversedBy: 'data')]
+    #[ORM\JoinColumn(name: 'clientPageID', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    private ?Page $page = null;
 
-    /**
-     * @var \DateTime
-     *
-     * @ORM\Column(name="date", type="datetime")
-     */
-    private $date;
+    #[ORM\Column(type: 'datetime_immutable')]
+    private \DateTimeImmutable $date;
 
-    /**
-     * Data constructor.
-     */
     public function __construct()
     {
-        $this->date = new \DateTime();
+        $this->date = new \DateTimeImmutable();
     }
 
-
-    /**
-     * Get id
-     *
-     * @return integer 
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * Set movements
-     *
-     * @param string $movements
-     * @return Data
-     */
-    public function setMovements($movements)
+    public function getMovements(): ?string
+    {
+        return $this->movements;
+    }
+
+    public function setMovements(?string $movements): self
     {
         $this->movements = $movements;
 
         return $this;
     }
 
-    /**
-     * Get movements
-     *
-     * @return string 
-     */
-    public function getMovements()
+    public function getClicks(): ?string
     {
-        return $this->movements;
+        return $this->clicks;
     }
 
-    /**
-     * Set clicks
-     *
-     * @param string $clicks
-     * @return Data
-     */
-    public function setClicks($clicks)
+    public function setClicks(?string $clicks): self
     {
         $this->clicks = $clicks;
 
         return $this;
     }
 
-    /**
-     * Get clicks
-     *
-     * @return string 
-     */
-    public function getClicks()
+    public function getPartial(): ?string
     {
-        return $this->clicks;
+        return $this->partial;
     }
 
-    /**
-     * Set partial
-     *
-     * @param string $partial
-     * @return Data
-     */
-    public function setPartial($partial)
+    public function setPartial(?string $partial): self
     {
         $this->partial = $partial;
 
         return $this;
     }
 
-    /**
-     * Get partial
-     *
-     * @return string 
-     */
-    public function getPartial()
+    public function getW(): ?string
     {
-        return $this->partial;
+        return $this->w;
     }
 
-    /**
-     * Set w
-     *
-     * @param string $w
-     * @return Data
-     */
-    public function setW($w)
+    public function setW(?string $w): self
     {
         $this->w = $w;
 
         return $this;
     }
 
-    /**
-     * Get w
-     *
-     * @return string 
-     */
-    public function getW()
+    public function getCachedRecords(): ?string
     {
-        return $this->w;
+        return $this->cachedRecords;
     }
 
-    /**
-     * Set cachedRecords
-     *
-     * @param string $cachedRecords
-     * @return Data
-     */
-    public function setCachedRecords($cachedRecords)
+    public function setCachedRecords(?string $cachedRecords): self
     {
         $this->cachedRecords = $cachedRecords;
 
         return $this;
     }
 
-    /**
-     * Get cachedRecords
-     *
-     * @return string 
-     */
-    public function getCachedRecords()
+    public function getRecord(): ?string
     {
-        return $this->cachedRecords;
+        return $this->record;
     }
 
-    /**
-     * Set record
-     *
-     * @param string $record
-     * @return Data
-     */
-    public function setRecord($record)
+    public function setRecord(?string $record): self
     {
         $this->record = $record;
 
         return $this;
     }
 
-    /**
-     * Get record
-     *
-     * @return string 
-     */
-    public function getRecord()
+    public function getPage(): ?Page
     {
-        return $this->record;
+        return $this->page;
     }
 
-    /**
-     * Set date
-     *
-     * @param \DateTime $date
-     * @return Data
-     */
-    public function setDate($date)
+    public function setPage(?Page $page): self
     {
-        $this->date = $date;
+        $this->page = $page;
 
         return $this;
     }
 
-    /**
-     * Get date
-     *
-     * @return \DateTime 
-     */
-    public function getDate()
+    public function getDate(): \DateTimeImmutable
     {
         return $this->date;
     }
 
-    /**
-     * Set clientPageID
-     *
-     * @param \benmacha\mousetracker\Entity\Page $clientPageID
-     * @return Data
-     */
-    public function setClientPageID(\benmacha\mousetracker\Entity\Page $clientPageID = null)
+    public function setDate(\DateTimeImmutable $date): self
     {
-        $this->clientPageID = $clientPageID;
+        $this->date = $date;
 
         return $this;
-    }
-
-    /**
-     * Get clientPageID
-     *
-     * @return \benmacha\mousetracker\Entity\Page
-     */
-    public function getClientPageID()
-    {
-        return $this->clientPageID;
     }
 }
