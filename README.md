@@ -1,5 +1,6 @@
 # MouseTrackerBundle
 
+[![CI](https://github.com/BenMacha/mouseTracker/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/BenMacha/mouseTracker/actions/workflows/ci.yml)
 [![Latest Stable Version](https://poser.pugx.org/benmacha/mousetracker/version)](https://packagist.org/packages/benmacha/mousetracker)
 [![Total Downloads](https://poser.pugx.org/benmacha/mousetracker/downloads)](https://packagist.org/packages/benmacha/mousetracker)
 [![License](https://poser.pugx.org/benmacha/mousetracker/license)](https://packagist.org/packages/benmacha/mousetracker)
