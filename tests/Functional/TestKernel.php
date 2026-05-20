@@ -49,7 +49,6 @@ final class TestKernel extends Kernel
             'test' => true,
             'router' => ['utf8' => true, 'resource' => 'kernel::loadRoutes', 'type' => 'service'],
             'http_method_override' => false,
-            'handle_all_throwables' => true,
             'php_errors' => ['log' => true],
             'annotations' => false,
             'validation' => ['enabled' => false],
