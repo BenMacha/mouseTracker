@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpKernel\Kernel;
 
 /**
  * End-to-end contract tests: the same JSON fixtures used by the JS suite
@@ -34,6 +35,10 @@ final class IngestEndpointsTest extends WebTestCase
 
     protected function setUp(): void
     {
+        if (Kernel::VERSION_ID < 60100) {
+            self::markTestSkipped('Bundle routes.yaml uses Routing `type: attribute`, added in Symfony 6.1.');
+        }
+
         $this->errorHandlersAtSetUp = self::snapshotErrorHandlers();
         $this->exceptionHandlersAtSetUp = self::snapshotExceptionHandlers();
 
