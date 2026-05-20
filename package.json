@@ -1,0 +1,14 @@
+{
+  "name": "@benmacha/mousetracker-dev",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Dev tooling for benmacha/mousetracker — JS unit tests.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "happy-dom": "^15.11.7",
+    "vitest": "^2.1.8"
+  }
+}

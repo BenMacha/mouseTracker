@@ -1,0 +1,9 @@
+{
+    "resolution": "1920 1080",
+    "token": "abcdef0123456789",
+    "url": "/some/page",
+    "domain": "example.com",
+    "clientID": null,
+    "source": "https://referrer.test/",
+    "versionMobile": "0"
+}
