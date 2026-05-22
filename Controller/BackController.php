@@ -31,7 +31,7 @@ final class BackController extends AbstractController
     public function getPages(Request $request): JsonResponse
     {
         $domain = $request->request->get('domain');
-        $rows = $this->pageRepository->findDistinctUrls($domain);
+        $rows = $this->pageRepository->findDistinctUrls(null !== $domain ? (string) $domain : null);
 
         return new JsonResponse(array_column($rows, 'url'));
     }

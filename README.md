@@ -96,7 +96,23 @@ That's it — the tracker boots on `DOMContentLoaded` and starts batching events
 
 ## Backend (replay UI)
 
-The bundle ships a basic backend at `/tracker/back/` for listing sessions and replaying recordings. Lock this down behind your firewall config — by default the routes are public.
+The bundle ships a basic backend at `/tracker/back/` for listing sessions and replaying recordings.
+
+> ⚠️ **Security — read this before deploying.**
+> The `/tracker/back/*` routes (replay UI + `getPages`/`getClients`/`getData` JSON endpoints) are **public by default**. Anyone who can reach your app can browse every recorded session, including form values, click coordinates, and DOM snapshots — which often contain PII.
+>
+> Gate them behind your `security.yaml` firewall before you ship. Example:
+>
+> ```yaml
+> # config/packages/security.yaml
+> security:
+>     access_control:
+>         - { path: ^/tracker/back, roles: ROLE_ADMIN }
+>         # the ingest endpoints below must stay reachable from the public site
+>         - { path: ^/tracker, roles: PUBLIC_ACCESS }
+> ```
+>
+> The same goes for GDPR/consent: `/tracker/createClient` and `/tracker/addData` are intentionally public so the tracker can post from any page, but you are responsible for getting visitor consent before loading `tracker.js`.
 
 ## Settings
 

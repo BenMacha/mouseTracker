@@ -2,6 +2,28 @@
 
 All notable changes to `benmacha/mousetracker`.
 
+## Unreleased
+
+### Added
+- PHPStan level 8 static analysis, wired into CI on PHP 8.3 / Symfony 7.4.
+- Security warning in README about gating `/tracker/back/*` behind a firewall.
+- Enriched Packagist keywords (heatmap, click-tracking, session-replay, gdpr, …).
+
+### Changed
+- JS dev tooling bumped: `vitest` ^2.1 → ^4.1, `happy-dom` ^15 → ^20.9 (clears open Dependabot advisories on the dev toolchain; no impact on shipped code).
+- Controllers cast `Request::get()` values to `string` before passing to entity setters, eliminating mixed-type leaks PHPStan flagged at level 8.
+
+## 2.0.1 — 2026-05-20
+
+### Added
+- JS contract suite (vitest + happy-dom) covering tracker.js boot, the `canRecord` gating logic, `coord4` packed-point round-tripping, and the `createClient` POST body shape.
+- Symfony functional test (`WebTestCase` + SQLite + `SchemaTool`) exercising the ingest endpoints against shared JSON fixtures.
+- CI badge in README.
+
+### Fixed
+- Dropped `framework.handle_all_throwables` from the test kernel — Symfony 5.4 rejects it as unrecognized config.
+- Functional tests now skip on Symfony <6.1, where the bundle's `routes.yaml` `type: attribute` loader is unavailable.
+
 ## 2.0.0 — 2026-05-19
 
 **Breaking rewrite.** Targets Symfony 5.4 / 6.4 / 7.x and PHP 8.1+.

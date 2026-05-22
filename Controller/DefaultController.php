@@ -42,8 +42,8 @@ final class DefaultController extends AbstractController
         $page->setResolution((string) $request->request->get('resolution', ''));
         $page->setUrl((string) $request->request->get('url', ''));
         $page->setDomain((string) $request->request->get('domain', ''));
-        $page->setSource($request->request->get('source'));
-        $page->setVersionMobile($request->request->get('versionMobile'));
+        $page->setSource((string) $request->request->get('source', ''));
+        $page->setVersionMobile((string) $request->request->get('versionMobile', ''));
 
         $this->em->persist($page);
         $this->em->flush();
@@ -71,14 +71,15 @@ final class DefaultController extends AbstractController
         }
 
         $cachedRecords = $request->request->get('cachedRecords');
+        $cachedRecordsStr = null !== $cachedRecords ? (string) $cachedRecords : null;
 
         $data = new Data();
-        $data->setMovements($request->request->get('movements'));
-        $data->setClicks($request->request->get('clicks'));
-        $data->setPartial(null !== $cachedRecords ? $cachedRecords : $request->request->get('partial'));
-        $data->setW($request->request->get('w'));
-        $data->setCachedRecords($cachedRecords);
-        $data->setRecord($request->request->get('record'));
+        $data->setMovements((string) $request->request->get('movements', ''));
+        $data->setClicks((string) $request->request->get('clicks', ''));
+        $data->setPartial($cachedRecordsStr ?? (string) $request->request->get('partial', ''));
+        $data->setW((string) $request->request->get('w', ''));
+        $data->setCachedRecords($cachedRecordsStr);
+        $data->setRecord((string) $request->request->get('record', ''));
         $data->setPage($page);
 
         $this->em->persist($data);

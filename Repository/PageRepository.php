@@ -32,6 +32,9 @@ final class PageRepository extends ServiceEntityRepository
                 ->setParameter('domain', $domain);
         }
 
-        return $qb->getQuery()->getArrayResult();
+        /** @var list<array{url: string}> $rows */
+        $rows = $qb->getQuery()->getArrayResult();
+
+        return $rows;
     }
 }
