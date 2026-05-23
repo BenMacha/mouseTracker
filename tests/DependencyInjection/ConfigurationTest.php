@@ -52,6 +52,7 @@ final class ConfigurationTest extends TestCase
 
     /**
      * @param array<int, array<string, mixed>> $configs
+     *
      * @return array<string, mixed>
      */
     private function process(array $configs): array

@@ -17,7 +17,7 @@ final class TrackerTest extends TestCase
             ->method('render')
             ->with(
                 '@Tracker/Tracker/Front.html.twig',
-                self::callback(static fn (array $ctx) => array_key_exists('settings', $ctx))
+                self::callback(static fn (array $ctx) => \array_key_exists('settings', $ctx))
             )
             ->willReturn('<script>...</script>');
 

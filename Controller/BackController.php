@@ -81,7 +81,7 @@ final class BackController extends AbstractController
                 continue;
             }
             $decoded = json_decode($partial, true);
-            if (is_array($decoded)) {
+            if (\is_array($decoded)) {
                 $merged = array_merge($merged, $decoded);
             }
         }

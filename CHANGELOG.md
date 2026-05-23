@@ -2,6 +2,14 @@
 
 All notable changes to `benmacha/mousetracker`.
 
+## Unreleased
+
+### Added
+- `.github/dependabot.yml`: weekly composer + npm + monthly github-actions PRs, grouped to reduce noise.
+- `SECURITY.md`: supported versions and private disclosure process via GitHub advisories.
+- `CONTRIBUTING.md`: how to set up, run the suites, and propose changes.
+- PHP-CS-Fixer (`@PSR12` + `@Symfony` + `@PHP81Migration`), wired into CI on PHP 8.3 / Symfony 7.4.
+
 ## 2.1.0 — 2026-05-23
 
 ### Added
