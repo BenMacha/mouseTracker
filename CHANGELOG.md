@@ -2,7 +2,7 @@
 
 All notable changes to `benmacha/mousetracker`.
 
-## Unreleased
+## 2.1.0 — 2026-05-23
 
 ### Added
 - PHPStan level 8 static analysis, wired into CI on PHP 8.3 / Symfony 7.4.
